@@ -1,6 +1,6 @@
 /* Backend de pruebas en PC: el buffer tiene el mismo formato que la pantalla del QL. Las teclas vienen de un guion
    (variable de entorno HQ_KEYS o fichero keys.txt): fichas separadas por espacios, una por pulsacion (se mantiene 2 cuadros
-   y se suelta 2; con el sufijo xN se mantiene N cuadros: Rx20): U D L R arriba, abajo, izquierda, derecha; F disparo; E escape; 0 1 2 3; '.' = esperar; Sxx = guardar la
+   y se suelta 2; con el sufijo xN se mantiene N cuadros: Rx20): U D L R arriba, abajo, izquierda, derecha; F disparo; E escape; 0 1 2 3 4; '.' = esperar; Sxx = guardar la
    pantalla en screen_xx.bin (sin cabecera: tools/ql2png.py <bin> <png>). Al acabarse el guion el programa termina. */
 #include "platform.h"
 #include "music.h"
@@ -12,6 +12,7 @@
 static u8 buf[SCR_BYTES];
 u8 *screen = buf;
 u8 plat_cursores = 1;
+u8 plat_tecla4 = 0;
 static char script[4096];
 static int spos = 0, hold = 0, rest = 0;
 static u16 cur = 0;
@@ -57,6 +58,7 @@ u16 plat_keys(void)
     case 'F': cur = K_FIRE; break;   case 'E': cur = K_ESC; break;
     case '0': cur = K_0; break;      case '1': cur = K_1; break;
     case '2': cur = K_2; break;      case '3': cur = K_3; break;
+    case '4': cur = K_4; break;
     case 'M': cur = K_M; break;
     case 'S': {
         char nm[16]; int n = 0;

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Empaqueta los textos del juego en data/textos_bin (formato para el QL, big endian) y escribe en build/datos/
-el indice y las constantes (textos_ids.h). Lee asset/textos_ql/textos.txt si existe (version traducida o retocada)
-y, si no, asset/textos/textos.txt (original). Las longitudes pueden cambiar: el binario guarda los textos sin relleno,
+el indice y las constantes (textos_ids.h). Lee asset/textos_ql/textos.es.txt (o textos.en.txt con HQ_VERSION=en; el nombre antiguo textos.txt vale para el espanol)
+si existe (version traducida o retocada) y, si no, asset/textos/textos.<idioma>.txt (original). Las longitudes pueden cambiar: el binario guarda los textos sin relleno,
 con su alineacion; las ventanas guardan el ancho minimo y la columna central, para que el juego las recalcule.
 Formato del binario:
   +0 'HQTX'  +4 version (word, 1)  +6 numero de elementos N (word)  +8 N entradas de 8 bytes
@@ -19,23 +19,69 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hq_txt_lib as T
 ROOT = T.ROOT
 ALINS = ('L', 'C', 'R'); RETOCADO = False
+def parsear(ruta, items):
+    cur = None
+    for n, l in enumerate(open(ruta, encoding='utf-8').read().split('\n'), 1):
+        if l.startswith('#') or not l.strip():
+            continue
+        mt = re.match(r'\[(\w+)\]\s+(\w+)\s*(.*)$', l)
+        if mt:
+            attrs = dict(re.findall(r'(\w+)=(\S+)', mt.group(3)))
+            cur = dict(id=mt.group(1), tipo=mt.group(2), attrs=attrs, lineas=[], n=n, ruta=ruta); items.append(cur); continue
+        if cur is None: raise SystemExit('%s:%d: linea fuera de un elemento' % (ruta, n))
+        cur['lineas'].append((n, l))
+def pares_ventanas():
+    """asset/textos_ql/equivalencia_en_es.txt: ventana o guion inglesa -> ventana espanola equivalente (None = [NEW]: solo existe en ingles)"""
+    ruta = os.path.join(ROOT, 'asset/textos_ql/equivalencia_en_es.txt'); d = {}
+    for n, l in enumerate(open(ruta, encoding='utf-8').read().split('\n'), 1):
+        m = re.match(r'\[((?:VENT|GUION|MENU)_\w+)\]\s+\[(\w+)\]\s*$', l)
+        if m: d[m.group(1)] = None if m.group(2) == 'NEW' else m.group(2)
+    return ruta, d
 def leer_fuente():
+    """elementos del juego: los de la version espanola (sus ids no cambian), los textos propios del port y, al final, las ventanas y los
+    textos de las pociones de la version inglesa con el prefijo EN_ (las zonas de clic llevan la accion de la ventana espanola equivalente)"""
     global RETOCADO; RETOCADO = False
     items = []
-    for nombre in ('textos.txt', 'textos_port.txt', 'textos_combate.txt'):      # el juego y los textos propios del port a QL
-        q = os.path.join(ROOT, 'asset/textos_ql', nombre); o = os.path.join(ROOT, 'asset/textos', nombre)
+    for nombre in ('textos', 'textos_port'):                                    # el juego y los textos propios del port a QL
+        q, o = T.fuente('textos', nombre, 'es')
         ruta = q if os.path.exists(q) else o
-        RETOCADO = RETOCADO or (ruta == q and (not os.path.exists(o) or open(q, 'rb').read() != open(o, 'rb').read()))
-        cur = None
-        for n, l in enumerate(open(ruta, encoding='utf-8').read().split('\n'), 1):
-            if l.startswith('#') or not l.strip():
-                continue
-            mt = re.match(r'\[(\w+)\]\s+(\w+)\s*(.*)$', l)
-            if mt:
-                attrs = dict(re.findall(r'(\w+)=(\S+)', mt.group(3)))
-                cur = dict(id=mt.group(1), tipo=mt.group(2), attrs=attrs, lineas=[], n=n, ruta=ruta); items.append(cur); continue
-            if cur is None: raise SystemExit('%s:%d: linea fuera de un elemento' % (ruta, n))
-            cur['lineas'].append((n, l))
+        RETOCADO = RETOCADO or (ruta == q and (not os.path.exists(o) or T.distintos(q, o)))
+        parsear(ruta, items)
+    q, o = T.fuente('textos', 'textos', 'en'); ruta = q if os.path.exists(q) else o
+    RETOCADO = RETOCADO or (ruta == q and (not os.path.exists(o) or T.distintos(q, o)))
+    en = []; parsear(ruta, en)
+    q, o = T.fuente('textos', 'textos_port', 'en'); rutaq = q if os.path.exists(q) else o
+    parsear(rutaq, en)
+    rutap, pares = pares_ventanas()
+    es = dict((it['id'], it) for it in items)
+    def zonas(it): return [l.split('|') for n, l in it['lineas'] if l.startswith('zona|')]
+    acc = {}                       # accion de una zona en el codigo ingles -> en el espanol (se deduce de las ventanas emparejadas con las mismas zonas)
+    for it in en:
+        if it['tipo'] == 'ventana' and pares.get(it['id']) in es:
+            ze, zs = zonas(it), zonas(es[pares[it['id']]])
+            if len(ze) == len(zs):
+                for a, b in zip(ze, zs):
+                    if acc.setdefault(a[5], b[5]) != b[5]: raise SystemExit('ERROR: la accion %s del codigo ingles equivale a dos del espanol (%s y %s)' % (a[5], acc[a[5]], b[5]))
+    for it in en:
+        if it['tipo'] == 'ventana' and not it['id'].startswith('PORT_'):
+            if it['id'] not in pares: raise SystemExit('ERROR: %s: falta la ventana inglesa %s' % (os.path.basename(rutap), it['id']))
+            eq = pares[it['id']]
+            if eq is not None and eq not in es: raise SystemExit('ERROR: %s: la ventana espanola %s no existe' % (os.path.basename(rutap), eq))
+            nl = []
+            for n, l in it['lineas']:
+                if l.startswith('zona|'):
+                    p = l.split('|')
+                    if p[5] not in acc: raise SystemExit('ERROR: la ventana %s tiene una zona con la accion %s, que no esta en ninguna ventana emparejada' % (it['id'], p[5]))
+                    p[5] = acc[p[5]]; l = '|'.join(p)
+                nl.append((n, l))
+            it['lineas'] = nl
+        elif it['tipo'] == 'guion':
+            if it['id'] not in pares: raise SystemExit('ERROR: %s: falta el guion ingles %s' % (os.path.basename(rutap), it['id']))
+            if pares[it['id']] is not None and pares[it['id']] not in es: raise SystemExit('ERROR: %s: el guion espanol %s no existe' % (os.path.basename(rutap), pares[it['id']]))
+        it['id'] = 'EN_' + it['id']                       # tablas de cadenas, indices y textos del port: mismo nombre que el espanol
+        items.append(it)
+    for v in es:
+        if v.startswith(('VENT_', 'GUION_', 'MENU_')) and v not in pares.values(): raise SystemExit('ERROR: %s: la ventana espanola %s no tiene equivalente ingles' % (os.path.basename(rutap), v))
     return ruta, items
 def err(ruta, n, msg): raise ValueError('%s:%d: %s' % (os.path.basename(ruta), n, msg))
 def empaquetar(permitir):
@@ -97,11 +143,20 @@ def empaquetar(permitir):
         f.write('/* generado por tools/hq_textos_empaquetar.py: numero de cada elemento de data/textos_bin */\n#ifndef TEXTOS_IDS_H\n#define TEXTOS_IDS_H\n')
         for i, x in enumerate(ids): f.write('#define TX_%s %d\n' % (x, i))
         f.write('#define TX_NUM %d\n#endif\n' % N)
+    pos = dict((x, i) for i, x in enumerate(ids)); nes = min(i for i, x in enumerate(ids) if x.startswith('EN_'))
+    ven = dict((v, e) for e, v in pares_ventanas()[1].items() if v)
+    mapa = []
+    for x in ids[:nes]:
+        en_id = 'EN_' + ven[x] if x in ven else 'EN_' + x
+        mapa.append(pos.get(en_id, -1))
+    with open(os.path.join(ROOT, 'build/datos/idioma_en.h'), 'w') as f:
+        f.write('/* generado por tools/hq_textos_empaquetar.py: elemento de textos_bin con la version inglesa de cada elemento espanol (-1 = no la tiene) */\n')
+        f.write('#define IDIOMA_EN_N %d\n#define IDIOMA_EN_MAP { %s }\n' % (len(mapa), ', '.join(str(x) for x in mapa)))
     with open(os.path.join(ROOT, 'build/datos/indice_textos.txt'), 'w') as f:
         f.write('numero id tipo desplazamiento bytes\n')
         for i, (it, b, al, cant) in enumerate(cuerpos):
             f.write('%3d %-28s %-8s %6d %5d\n' % (i, it['id'], it['tipo'], 8 + 8 * N + sum(len(c[1]) for c in cuerpos[:i]), len(b)))
-    print('%s: %d elementos, %d bytes (%s)' % ('data/textos_bin', N, len(blob), 'retocado: asset/textos_ql/textos.txt' if RETOCADO else 'original'))
+    print('%s: %d elementos, %d bytes (%s)' % ('data/textos_bin', N, len(blob), 'retocado: asset/textos_ql' if RETOCADO else 'original'))
     return ruta, items
 if __name__ == '__main__':
     empaquetar('--permitir-excesos' in sys.argv)

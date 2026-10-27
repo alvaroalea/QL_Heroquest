@@ -145,7 +145,7 @@ int main(int argc, char **argv)
             esclic = strstr(ln, "CLIC") != NULL;
             if (esclic) sscanf(strchr(ln, '|') + 1, "%d %d %d %d %7s", &pm, &rep, &cx, &cy, tipo);
             else sscanf(strchr(ln, '|') + 1, "%d %d %d %7s", &pm, &rep, &d, tipo);
-            sprintf(nm, "%smision_%02d_bin", ddir, m);
+            sprintf(nm, "%smision_%02d_es_bin", ddir, m);
             dm = leer_fichero(nm, &n);
             if (!dm) { fprintf(out, "no se puede leer %s\n", nm); return 2; }
             pers_boot(&p);

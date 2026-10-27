@@ -14,7 +14,12 @@ extern u8 *fnt_normal, *fnt_manuscrita;   /* fuentes de 544 bytes */
 extern u8 *txt;                   /* textos_bin */
 extern u8 *fx_data;               /* efectos_bin (puede faltar: entonces no hay efectos de sonido) */
 extern u8 *mus_data;               /* musica_bin (puede faltar: entonces no hay musica) */
-extern u8 *mis_indice;            /* misiones_indice_bin */
+extern u8 *mis_indice;            /* misiones_indice_xx_bin del idioma elegido */
+extern int g_idioma;              /* idioma de las misiones: IDIOMA_ES o IDIOMA_EN */
+#define IDIOMA_ES 0
+#define IDIOMA_EN 1
+void data_mision_nombre(char *name, int n);   /* nombre del fichero de la mision n en el idioma elegido: mision_NN_es_bin o mision_NN_en_bin (name: 24 bytes) */
+int  data_idioma(int idioma);     /* elige el idioma de las misiones y carga su indice; 0 si falta el fichero */
 
 int  data_init(void);             /* carga todo lo que usan los menus; 0 si falta algo (el mensaje ya sale por pantalla) */
 #endif

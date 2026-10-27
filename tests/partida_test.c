@@ -77,7 +77,7 @@ static void cargar_caso(Partida *p, int m, int presentes, const u8 eq[4][5])
         p->pers[i].armas = eq[i][3]; p->pers[i].armadura = eq[i][4];
         pr[i] = (u8)((presentes >> i) & 1);
     }
-    sprintf(nm, "%smision_%02d_bin", ddir, m);
+    sprintf(nm, "%smision_%02d_es_bin", ddir, m);
     d = leer_fichero(nm, &n);
     if (!d) { fprintf(out, "no se puede leer %s\n", nm); exit(2); }
     if (!partida_cargar(p, m, d, n, pr)) { fprintf(out, "FALLO: partida_cargar rechaza %s\n", nm); fallos++; }

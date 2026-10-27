@@ -38,7 +38,9 @@ typedef unsigned long  u32;
 #define K_2     0x0100
 #define K_3     0x0200
 #define K_M     0x0400            /* alterna musica, efectos y silencio durante la partida */
+#define K_4     0x0800            /* solo se lee si plat_tecla4 (el menu de controles): cada fila de KEYROW es una llamada lenta */
 
+extern u8 plat_tecla4;            /* 1 = plat_keys lee tambien la tecla 4 (en el QL cuesta una lectura mas de la matriz) */
 extern u8 *screen;                /* pantalla en formato QL modo 8 */
 
 void plat_init(void);

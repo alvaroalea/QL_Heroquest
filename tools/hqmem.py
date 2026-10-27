@@ -1,7 +1,10 @@
 """Utilidades comunes: memoria del snapshot de Hero Quest 128K por banco."""
 import os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-EXT = os.path.join(ROOT, 'asset', 'extraido')
+# Version del juego: 'es' (Dro Soft, asset/extraido) o 'en' (Gremlin, asset/extraido_en). Se elige con la variable HQ_VERSION.
+VERSION = os.environ.get('HQ_VERSION', 'es')
+if VERSION not in ('es', 'en'): raise SystemExit('HQ_VERSION debe ser es o en')
+EXT = os.path.join(ROOT, 'asset', 'extraido' if VERSION == 'es' else 'extraido_en')
 BANKS = [open(os.path.join(EXT, 'bank%d.bin' % i), 'rb').read() for i in range(8)]
 
 def byte(addr, bank=0):

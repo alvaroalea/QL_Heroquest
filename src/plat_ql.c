@@ -100,18 +100,22 @@ static const struct { u8 code; u16 bit; } kmap[] = {
     { 0x36, K_FIRE },  /* espacio */
     { 0x32, K_UP },    { 0x37, K_DOWN }, { 0x31, K_LEFT }, { 0x34, K_RIGHT },   /* cursores */
     { 0x33, K_ESC },
-    { 0x0D, K_0 }, { 0x1B, K_1 }, { 0x09, K_2 }, { 0x19, K_3 }, { 0x2E, K_M }
+    { 0x0D, K_0 }, { 0x1B, K_1 }, { 0x09, K_2 }, { 0x19, K_3 }, { 0x2E, K_M },
+    { 0x3E, K_4 }      /* la ultima: solo se lee con plat_tecla4 */
 };
 #define NKMAP (sizeof(kmap) / sizeof(kmap[0]))
+
+u8 plat_tecla4 = 0;
 
 u16 plat_keys(void)
 {
     int rows[8], i, r;
     unsigned int need = 0;
     u16 k = 0;
-    for (i = 0; i < (int)NKMAP; i++) need |= 1u << (7 - (kmap[i].code >> 3));
+    int n = plat_tecla4 ? (int)NKMAP : (int)NKMAP - 1;
+    for (i = 0; i < n; i++) need |= 1u << (7 - (kmap[i].code >> 3));
     for (r = 0; r < 8; r++) rows[r] = (need & (1u << r)) ? kr_row(r) : 0;
-    for (i = 0; i < (int)NKMAP; i++) {
+    for (i = 0; i < n; i++) {
         if (i >= 5 && i <= 8 && !plat_cursores) continue;       /* entradas de los cursores */
         if (rows[7 - (kmap[i].code >> 3)] & (1 << (kmap[i].code & 7))) k |= kmap[i].bit;
     }

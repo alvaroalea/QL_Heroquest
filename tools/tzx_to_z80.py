@@ -12,6 +12,8 @@ def blocks(d):
         if t == 0x10:
             l = struct.unpack('<H', d[i+2:i+4])[0]
             out.append(d[i+4:i+4+l]); i += 4 + l
+        elif t == 0x32: i += 2 + struct.unpack('<H', d[i:i+2])[0]      # informacion del archivo (version inglesa): se ignora
+        elif t == 0x30: i += 1 + d[i]                                    # descripcion en texto: se ignora
         else:
             raise SystemExit('bloque TZX no soportado %02x' % t)
     return out
@@ -38,6 +40,9 @@ def main(tzx, outdir):
     for i in range(8):
         open(os.path.join(outdir, 'bank%d.bin' % i), 'wb').write(ram[i])
     open(os.path.join(outdir, 'game_ram48.bin'), 'wb').write(mem[0x4000:])
+    # memoria fija 0x4000-0xFFFF (la que ve el juego con el banco 0 en 0xC000) y overlay del menu (banco 6, 0xDB58, 0x11EE bytes, org 0x5B00)
+    open(os.path.join(outdir, 'main48.bin'), 'wb').write(bytes(ram[5]) + bytes(ram[2]) + bytes(ram[0]))
+    open(os.path.join(outdir, 'overlay_menu_5B00.bin'), 'wb').write(bytes(ram[6][0xDB58-0xC000:0xDB58-0xC000+0x11EE]))
     # cabecera .z80 v3
     h = bytearray(30)
     h[6:8] = struct.pack('<H', 0)          # PC=0 -> v2/v3

@@ -4,6 +4,7 @@
 #include <string.h>
 
 u8 *pk_marco = 0, *fnt_normal = 0, *fnt_manuscrita = 0, *txt = 0, *mis_indice = 0, *mus_data = 0, *fx_data = 0;
+int g_idioma = IDIOMA_ES;
 
 u16 rd16(const u8 *p) { return (u16)((p[0] << 8) | p[1]); }
 u32 rd32(const u8 *p) { return ((u32)p[0] << 24) | ((u32)p[1] << 16) | ((u32)p[2] << 8) | (u32)p[3]; }
@@ -48,14 +49,26 @@ static u8 *need(const char *name)
     return b;
 }
 
+void data_mision_nombre(char *name, int n)
+{
+    sprintf(name, "mision_%02d_%s_bin", n, g_idioma == IDIOMA_EN ? "en" : "es");
+}
+
+int data_idioma(int idioma)
+{
+    if (mis_indice) { free(mis_indice); mis_indice = 0; }
+    g_idioma = idioma;
+    mis_indice = need(idioma == IDIOMA_EN ? "misiones_indice_en_bin" : "misiones_indice_es_bin");
+    return mis_indice != 0;
+}
+
 int data_init(void)
 {
     pk_marco = need("marco_bin");
     fnt_normal = need("fuente_normal_bin");
     fnt_manuscrita = need("fuente_manuscrita_bin");
     txt = need("textos_bin");
-    mis_indice = need("misiones_indice_bin");
     mus_data = data_load("musica_bin", 0);
     fx_data = data_load("efectos_bin", 0);
-    return pk_marco && fnt_normal && fnt_manuscrita && txt && mis_indice;
+    return pk_marco && fnt_normal && fnt_manuscrita && txt && data_idioma(IDIOMA_ES);
 }

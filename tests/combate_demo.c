@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     gfx_set_font(fnt_normal);
     spr = cargar("sprites_bin");
     if (!vista_datos(spr, cargar("escenario_bin"), cargar("vista_bin"), cargar("baldosas_bin"), cargar("marca_activo_bin"))) { printf("vista_datos falla\n"); return 2; }
-    sprintf(nm, "mision_%02d_bin", mision);
+    sprintf(nm, "mision_%02d_es_bin", mision);
     dm = data_load(nm, &n);
     if (!dm) { printf("no se puede leer %s\n", nm); return 2; }
     pers_boot(p);

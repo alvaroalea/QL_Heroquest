@@ -41,7 +41,7 @@ static int partida_iniciar(int mision)
     u8 pr[4], *m;
     long n;
     int i, ok;
-    sprintf(name, "mision_%02d_bin", mision);
+    data_mision_nombre(name, mision);
     m = data_load(name, &n);
     if (!m) return 0;
     for (i = 0; i < 4; i++) pr[i] = heroes[i].activo;

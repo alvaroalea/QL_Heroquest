@@ -25,5 +25,6 @@ void game_init(void);             /* heroes por omisión */
 void game_run(int mision);        /* la partida (de momento un aviso y vuelta al menu) */
 void game_draw_background(void);  /* marco de la pantalla de juego */
 
+int  menu_idioma(void);           /* primera pantalla: idioma de las misiones; 0 si se sale del programa */
 void menu_principal(void);        /* bucle del menu inicial; vuelve solo si se sale del programa */
 #endif

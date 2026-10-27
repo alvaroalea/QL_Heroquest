@@ -82,5 +82,5 @@ Con el hechizo elegido se vuelve al plano (sin botones) y se elige el blanco; la
 - **Las figuras de la pantalla de combate** se dibujan con sus colores sobre una caja blanca (el original las pone en negativo con la tinta del atributo).
 - **Esc cancela** la elección del objetivo de un hechizo (el original no tiene cancelar; el hechizo no se gasta) y cierra el panel.
 - **El botón corta las esperas** de los mensajes.
-- **Rótulos de la pantalla de combate** (`CUERPO`, `MENTE`): son del port (`textos_combate.txt`, traducibles) porque en el original son datos fijos del guion `0xB161`.
+- **Rótulos de la pantalla de combate** (`CUERPO`, `MENTE`): son del port (`PORT_COMBATE` en `textos_port.es.txt`/`.en.txt`, traducibles) porque en el original son datos fijos del guion `0xB161`.
 - Los **sonidos** (`0x7BA2`, `0x7BA4`) irán con el paso de efectos de sonido.

@@ -176,7 +176,7 @@ int main(int argc, char **argv)
     for (cur = (char *)txt; (ln = siguiente(&cur)) != NULL;) {
         if (!strncmp(ln, "CASO ", 5)) {
             sscanf(ln, "CASO %d %d %d %d %d %d %d %d %d %d", &m, &activo, &pos[0], &pos[1], &pos[2], &pos[3], &pos[4], &pos[5], &pos[6], &pos[7]);
-            sprintf(nm, "%smision_%02d_bin", ddir, m);
+            sprintf(nm, "%smision_%02d_es_bin", ddir, m);
             dm = leer_fichero(nm, &n);
             if (!dm) { fprintf(out, "no se puede leer %s\n", nm); return 2; }
             pers_boot(&p);

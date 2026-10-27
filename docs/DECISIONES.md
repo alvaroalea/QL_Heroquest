@@ -17,7 +17,7 @@ Rutinas «no necesarias», decisiones de diseño y mejoras propias retiradas (y 
 ## Datos del port a QL (decidido con el usuario)
 
 - **Nombres de fichero del QL sin punto**: `sprites.bin` → `sprites_bin`. Todos los binarios del QL van a `data/`; los índices y constantes solo para el PC, a `build/datos/`.
-- **Textos** (`data/textos_bin`) y **misiones** (`data/mision_NN_bin` + `data/misiones_indice_bin`) en ficheros separados del juego, para poder **traducirlos y personalizarlos sin modificar el juego**: textos con longitud variable (sin relleno; el juego recalcula anchos y centrados), un fichero por misión y un índice. Ver `docs/ZX_DATOS_QL.md`.
+- **Textos** (`data/textos_bin`) y **misiones** (`data/mision_NN_es_bin` y `mision_NN_en_bin` + `data/misiones_indice_es_bin` y `misiones_indice_en_bin`) en ficheros separados del juego, para poder **traducirlos y personalizarlos sin modificar el juego**: textos con longitud variable (sin relleno; el juego recalcula anchos y centrados), un fichero por misión y un índice. Ver `docs/ZX_DATOS_QL.md`.
 - Las versiones retocadas o traducidas viven en `asset/graficos_ql/`, `asset/textos_ql/` y `asset/misiones_ql/`, que ninguna herramienta de extracción sobrescribe.
 
 ## Vista isométrica y plano (paso 2)
@@ -53,7 +53,7 @@ Rutinas «no necesarias», decisiones de diseño y mejoras propias retiradas (y 
 - **Figuras de la pantalla de combate**: en color sobre una caja blanca en vez de en negativo.
 - **Panel del personaje**: se redibuja entero tras cada clic (el original solo redibuja la lista afectada).
 - **Esc** cancela la elección del blanco de un hechizo y cierra el panel y la ventana de sí/no.
-- **Rótulos nuevos** (`CUERPO`, `MENTE`) en `textos_combate.txt` (el original los lleva fijos en el guion `0xB161`). Se copia a `asset/textos_ql/` solo si falta.
+- **Rótulos nuevos** (`CUERPO`, `MENTE`) en `textos_port.es.txt`/`textos_port.en.txt` (`PORT_COMBATE`) (el original los lleva fijos en el guion `0xB161`). Se copia a `asset/textos_ql/` solo si falta.
 - **`ui_defensa(heroe, monstruo)`** (la defensa con su pantalla) queda lista para el turno de los monstruos del paso 6.
 
 ## Misiones (paso 7)

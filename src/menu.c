@@ -56,7 +56,7 @@ static void draw_grupos(const int *owner, int cur, int hdr)
     cls();
     if (hdr == 1) tx_guion(TX_MENU_680C, -1, 0, 0);
     else if (hdr == 2) tx_guion(TX_MENU_686A, -1, 0, 0);
-    else if (hdr == 3) tx_guion(TX_PORT_HECHICERO_GRUPO, -1, 0, 0);
+    else if (hdr == 3) tx_guion(TX_MENU_683C, -1, 0, 0);
     tx_guion(TX_MENU_6761, -1, 0, 0);
     for (g = 0; g < 4; g++) {
         draw_line(grp_tit[g], 0, -1, g == cur);
@@ -126,7 +126,7 @@ static void mostrar_objetivo(int n)
 {
     char name[24];
     u8 *m;
-    sprintf(name, "mision_%02d_bin", n);
+    data_mision_nombre(name, n);
     m = data_load(name, 0);
     cls();
     if (m) { tx_ops(m + rd32(m + 44), -1, 0, 0); free(m); }
@@ -401,25 +401,38 @@ static void menu_crear(void)
 }
 
 /* ---------------------------------------------------------------- controles */
+/* Convierte un texto ASCII a codigos del juego (solo letras, cifras y espacio) */
+static int a_codigos(const char *a, u8 *b)
+{
+    int n;
+    for (n = 0; a[n]; n++) b[n] = (u8)(a[n] == ' ' ? 0x5F : a[n]);
+    return n;
+}
+
 static void draw_controles(void)
 {
     int n, on;
     const u8 *s;
-    static const u8 col[4] = { C_MAGENTA, C_GREEN, C_RED, C_CYAN };
-    static const int row[4] = { 5, 6, 7, 9 };
-    static const int estado[4] = { -1, -1, -1, -1 };
+    u8 b[16];
+    static const u8 col[5] = { C_MAGENTA, C_GREEN, C_RED, C_WHITE, C_CYAN };
+    static const int row[5] = { 5, 6, 7, 8, 10 };
+    static const int txt_i[5] = { 1, 2, 3, 7, 4 };          /* cadenas de PORT_CONTROLES: 1.CURSORES 2.MUSICA 3.MANUSCRITO 4.IDIOMA 0.SALIDA */
     int i;
     cls();
     s = tx_str(TX_PORT_CONTROLES, 0, &n);
     tx_cadena_centrada(2 + UI_ROW0, s, n, C_YELLOW, NEG);
-    for (i = 0; i < 4; i++) {
-        s = tx_str(TX_PORT_CONTROLES, 1 + i, &n);
+    for (i = 0; i < 5; i++) {
+        s = tx_str(TX_PORT_CONTROLES, txt_i[i], &n);
         gfx_text(6, row[i] + UI_ROW0, s, n, col[i], NEG);
-        (void)estado;
         if (i < 2) {
             on = (i == 0) ? g_cursores : g_musica;
             s = tx_str(TX_PORT_CONTROLES, on ? 5 : 6, &n);
             gfx_text(6 + 11 + 0, row[i] + UI_ROW0, s, n, col[i], NEG);
+        } else if (i == 3) {                                  /* idioma actual */
+            on = 6 + n + 1;                                       /* detras del rotulo (que cambia de largo con el idioma) */
+            if (on < 6 + 11) on = 6 + 11;
+            n = a_codigos(g_idioma == IDIOMA_EN ? "ENGLISH" : "ESPANOL", b);
+            gfx_text(on, row[i] + UI_ROW0, b, n, col[i], NEG);
         }
     }
 }
@@ -427,6 +440,7 @@ static void draw_controles(void)
 static void menu_controles(void)
 {
     u16 k;
+    plat_tecla4 = 1;
     for (;;) {
         draw_controles();
         k = key_wait();
@@ -437,8 +451,13 @@ static void menu_controles(void)
             mus_song(2);
         }
         if (k & K_3) { g_manuscrita = !g_manuscrita; gfx_set_font(g_manuscrita ? fnt_manuscrita : fnt_normal); }
-        if (k & (K_0 | K_ESC | K_FIRE)) return;
+        if (k & K_4) {                                            /* cambia el idioma de las misiones y las ventanas */
+            int antes = g_idioma;
+            if (!data_idioma(antes == IDIOMA_EN ? IDIOMA_ES : IDIOMA_EN)) data_idioma(antes);
+        }
+        if (k & (K_0 | K_ESC | K_FIRE)) break;
     }
+    plat_tecla4 = 0;
 }
 
 /* ---------------------------------------------------------------- menu principal */
@@ -467,6 +486,56 @@ void menu_principal(void)
         else if (sel == 2) menu_crear();
         else menu_controles();
     }
+}
+
+/* ---------------------------------------------------------------- idioma */
+/* Primera pantalla: elige el idioma de las misiones (de momento solo ellas; ventanas, pociones, monstruos y guiones siguen en espanol).
+   La fuente no tiene '-' ni '/': se dibujan con una copia de la fuente donde se les ha puesto glifo (codigos 0x3F y 0x40). */
+static const u8 glifo_guion[8] = { 0x00, 0x00, 0x00, 0x00, 0x7C, 0x00, 0x00, 0x00 };
+static const u8 glifo_barra[8] = { 0x00, 0x02, 0x06, 0x0C, 0x18, 0x30, 0x60, 0x40 };
+static const char *const idioma_txt[2] = { "1 - ESPANOL / SPANISH", "2 - ENGLISH / INGLES" };
+#define IDIOMA_FILA 12
+
+static void draw_idioma(int sel)
+{
+    int i, j, n;
+    u8 b[24];
+    for (i = 0; i < 2; i++) {
+        for (n = 0; idioma_txt[i][n]; n++) {
+            j = idioma_txt[i][n];
+            b[n] = (u8)(j == ' ' ? 0x5F : j == '-' ? 0x3F : j == '/' ? 0x40 : j);
+        }
+        tx_cadena_centrada(IDIOMA_FILA + 3 * i, b, n, i == sel ? C_GREEN : C_MAGENTA, NEG);
+    }
+}
+
+/* 1 si se ha elegido idioma, 0 si se pulso ESC (salir del programa) */
+int menu_idioma(void)
+{
+    static u8 fuente[544];
+    int sel = g_idioma, ok = 1;
+    u16 k;
+    memcpy(fuente, fnt_normal, 544);
+    memcpy(fuente + (0x3F - 0x30) * 8, glifo_guion, 8);
+    memcpy(fuente + (0x40 - 0x30) * 8, glifo_barra, 8);
+    gfx_set_font(fuente);
+    cls(); draw_title();
+    key_reset();
+    for (;;) {
+        draw_idioma(sel);
+        k = key_wait();
+        if (k & (K_DOWN | K_RIGHT)) sel = (sel + 1) % 2;
+        if (k & (K_UP | K_LEFT)) sel = (sel + 1) % 2;
+        if (k & K_1) { sel = IDIOMA_ES; break; }
+        if (k & K_2) { sel = IDIOMA_EN; break; }
+        if (k & K_ESC) { ok = 0; break; }
+        if (k & K_FIRE) break;
+    }
+    gfx_set_font(g_manuscrita ? fnt_manuscrita : fnt_normal);
+    if (!ok) return 0;
+    if (!data_idioma(sel)) { printf("\nFaltan ficheros de datos.\n"); return 0; }
+    mus_song(2);                           /* musica del menu */
+    return 1;
 }
 
 /* ---------------------------------------------------------------- datos iniciales */

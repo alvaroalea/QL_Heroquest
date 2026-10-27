@@ -174,7 +174,7 @@ int main(int argc, char **argv)
             for (i = 0; i < 20; i++) dados[i] = 0;
             sscanf(q, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &dados[0], &dados[1], &dados[2], &dados[3], &dados[4], &dados[5], &dados[6], &dados[7],
                    &dados[8], &dados[9], &dados[10], &dados[11], &dados[12], &dados[13], &dados[14], &dados[15], &dados[16], &dados[17], &dados[18], &dados[19]);
-            sprintf(nm, "%smision_%02d_bin", ddir, m);
+            sprintf(nm, "%smision_%02d_es_bin", ddir, m);
             dm = leer_fichero(nm, &n);
             if (!dm) { fprintf(out, "no se puede leer %s\n", nm); return 2; }
             pers_boot(&p);

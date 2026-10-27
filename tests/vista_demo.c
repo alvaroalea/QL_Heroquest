@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     pk_marco = cargar("marco_bin");
     spr = cargar("sprites_bin"); esc = cargar("escenario_bin");
     if (!vista_datos(spr, esc, cargar("vista_bin"), cargar("baldosas_bin"), cargar("marca_activo_bin"))) { printf("vista_datos falla\n"); return 2; }
-    sprintf(nm, "mision_%02d_bin", atoi(argv[1]));
+    sprintf(nm, "mision_%02d_es_bin", atoi(argv[1]));
     dm = cargar(nm); n = 0;
     { FILE *f; char path[80]; sprintf(path, "%s%s", plat_data_dir(), nm); f = fopen(path, "rb"); fseek(f, 0, 2); n = ftell(f); fclose(f); }
     pers_boot(p);

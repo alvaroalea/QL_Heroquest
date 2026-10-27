@@ -29,7 +29,7 @@ Resumen de las 29 rutinas del overlay: **18 directas**, **7 inspiradas**, **3 su
 | `0x60E6` | Inicializa un héroe nuevo | Directa | `pers_nuevo()` y `pers_boot()` (`partida.c`), `game_init()` | Cuerpo inicial de la tabla `0x7E4E`, sin oro ni equipo; los nombres por omisión siguen en `game_init()` |
 | `0x611E` | Dibuja los nombres de los héroes | Directa | `draw_crear()`, `draw_nombre()` | |
 | `0x6141` | `ELEGIR_MISION` | Directa | `menu_jugar()`, `elegir_mision()` | Mensaje «TODOS LOS JUGADORES MUERTOS» si no hay héroes; después hechizos, lista de las 14 misiones y objetivo |
-| `0x61A9` | `ELEGIR_HECHIZOS` | Directa | `elegir_hechizos()` | Primero el hechicero (3 grupos si juega solo, 1 si juega el duende) y después el duende; los grupos sin dueño pasan al hechicero. Corrección del port: el hechicero también ve la cabecera «HECHICERO / ELIGE TU GRUPO DE HECHIZOS» cuando juega el duende (el original solo la mostraba al duende; texto `PORT_HECHICERO_GRUPO`). Los grupos se guardan en `heroes[].grupos` (bits 0-3), no en los bytes `+0x0B/+0x0C` del original |
+| `0x61A9` | `ELEGIR_HECHIZOS` | Directa | `elegir_hechizos()` | Primero el hechicero (3 grupos si juega solo, 1 si juega el duende) y después el duende; los grupos sin dueño pasan al hechicero. Corrección del port: el hechicero también ve su cabecera («MAGO / ELIGE TUS PRIMEROS HECHIZOS», guion `MENU_683C`; en el original español estaba partida en `683C`/`684C` y con el nombre cortado, en el inglés es el guion `6813`) cuando juega el duende (el original solo la mostraba al duende). Los grupos se guardan en `heroes[].grupos` (bits 0-3), no en los bytes `+0x0B/+0x0C` del original |
 | `0x6251` | Elige un grupo de hechizos | Directa | `elegir_grupo()` | El original solo avanzaba con «derecha»; aquí también con abajo/izquierda/arriba |
 | `0x627E` | Dibuja los grupos de hechizos | Directa | `draw_grupos()` | |
 | `0x62C4` | `TIENDA` | Directa | `menu_tienda()` | Misma lógica de compra con los 13 artículos y sus precios (`art[]` copia de la tabla `0x6603`): compra si alcanza el oro y no se tiene ya |
@@ -194,7 +194,7 @@ Uso en el juego: melodía 2 en el menú (desde el arranque y al volver de la par
 | Textos de los menús (scripts del overlay) | `data/textos_bin` (`MENU_*`), con identificadores `TX_*` |
 | Marco de la pantalla de juego (banco 6 `0xC000`) | `data/marco_bin` |
 | Fuentes del banco 7 y baldosas `0xB1C8` | `data/fuente_normal_bin`, `fuente_manuscrita_bin`, `baldosas_bin` |
-| Misiones (bancos 1 y 3) | `data/mision_NN_bin` y `misiones_indice_bin` |
+| Misiones (bancos 1 y 3) | `data/mision_NN_es_bin`, `mision_NN_en_bin` y `misiones_indice_es_bin`, `misiones_indice_en_bin` |
 | Sprites, escenario y retratos | `data/sprites_bin`, `escenario_bin`, `retratos_bin` (empaquetados, aún sin usar en el código) |
 
 ## No portado

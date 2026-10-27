@@ -20,6 +20,7 @@ La LLM actúa como experta en Sinclair QL, Sinclair ZX Spectrum, C y ensamblador
 - `docs/ZX_MONSTRUOS.md` — el turno de Morcar: camino de los monstruos hacia un héroe, movimiento y ataque, y su port a `src/monstruo.c` (`tests/monstruo_test.c`).
 - `docs/ZX_MISIONES.md` — lo propio de cada misión: eventos, salas especiales del ojo, salida por la escalera y vuelta al menú, y su port a `src/mision.c` (`tests/mision_test.c`).
 - `docs/ZX_SONIDO.md` — los efectos de sonido del juego (qué suena y cuándo, por qué solo con la música desactivada) y su port a `src/music.c` (`mus_efecto`, `data/efectos_bin`).
+- `docs/ZX_VERSION_EN.md` — la versión inglesa (`ref/Hero Quest - 128k.tzx`): cómo se extrae (`HQ_VERSION=en`, `asset/extraido_en/`), qué es igual y qué cambia respecto a la española; los textos y misiones salen como `*.es.txt` / `*.en.txt`.
 - `docs/DECISIONES.md` — rutinas «no necesarias», decisiones de diseño y mejoras propias retiradas (y cómo recuperarlas).
 
 ## 1. Resumen

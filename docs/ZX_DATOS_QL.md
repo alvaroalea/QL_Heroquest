@@ -5,10 +5,10 @@ Igual que los gráficos (`docs/ZX_GRAFICOS_QL.md`), los textos y las misiones se
 **Nombres de fichero del QL: sin puntos.** Todos los ficheros de `data/` terminan en `_bin` (`sprites_bin`, `textos_bin`, `mision_03_bin`...). Lo que solo sirve al PC (índices, constantes) va a `build/datos/`.
 
 ```
-asset/textos/textos.txt            <- original extraído (se regenera)        asset/textos_ql/textos.txt      <- tuyo (nunca se sobrescribe)
-asset/misiones/misionNN.txt        <- originales extraídos (se regeneran)    asset/misiones_ql/misionNN.txt  <- tuyos
-data/textos_bin, data/mision_NN_bin, data/misiones_indice_bin       <- binarios del QL
-build/datos/textos_ids.h, indice_textos.txt, indice_misiones.txt     <- índices para el PC
+asset/textos/textos.es.txt|.en.txt  <- original extraído (se regenera)     asset/textos_ql/textos.es.txt|.en.txt  <- tuyo (nunca se sobrescribe)
+asset/misiones/misionNN.es.txt|.en.txt <- originales extraídos (se regeneran)  asset/misiones_ql/misionNN.es.txt|.en.txt <- tuyos
+data/textos_bin, data/mision_NN_es_bin y _en_bin, data/misiones_indice_es_bin y _en_bin   <- binarios del QL (misiones en los dos idiomas)
+build/datos/textos_ids.h, indice_textos.txt, indice_misiones_es.txt e indice_misiones_en.txt     <- índices para el PC
 ```
 
 Todo el flujo (también gráficos): `tools/hq_ql_datos.sh extraer` (extrae los originales, copia a `*_ql` lo que falte y empaqueta) y, después de editar, `tools/hq_ql_datos.sh`. Cada paso se puede lanzar por separado: `hq_textos_extraer.py`, `hq_misiones_extraer.py`, `hq_ql_inicializar.py` (copia solo lo que falte; `--estado` lista lo pendiente), `hq_textos_empaquetar.py`, `hq_misiones_empaquetar.py`. El empaquetado usa el fichero de `*_ql` si existe y, si no, el original; indica cuántos están retocados. `hq_textos_verificar.py` y `hq_misiones_verificar.py` comparan los binarios con la memoria del juego original (solo con los originales sin tocar).
@@ -26,7 +26,12 @@ El juego dibuja el carácter de código `c` con el glifo `c − 0x30` de la fuen
 
 Si necesitas otros caracteres (acentos, ñ), redibuja glifos de la fuente en `asset/graficos_ql/fuentes/fuente_normal.png` (por ejemplo los iconos que no usas) y escribe su código con `{XX}`. El empaquetador avisa si el texto tiene un carácter sin código.
 
-## textos.txt
+`textos_bin` lleva, además de los textos españoles, las ventanas inglesas y las pociones inglesas (elementos `EN_*` al final) y `build/datos/vent_en.h` con la correspondencia; ver `docs/ZX_VERSION_EN.md`.
+
+## Dos versiones del original: español (`.es.txt`) e inglés (`.en.txt`)
+Los extractores leen la versión que indica la variable `HQ_VERSION` (`es` por defecto, `en` = `ref/Hero Quest - 128k.tzx`, volcado en `asset/extraido_en/`) y escriben `textos.<v>.txt` y `misionNN.<v>.txt`. Para sacar la inglesa: `HQ_VERSION=en tmp/venv/bin/python -I tools/hq_textos_extraer.py` (igual con `hq_misiones_extraer.py`); `tools/hq_ql_datos.sh extraer` hace las dos. Los empaquetadores usan `HQ_VERSION` (por defecto `es`) y siguen aceptando los nombres antiguos sin idioma (`textos_ql/textos.txt`, `misiones_ql/misionNN.txt`) como copia retocada del español. Las direcciones de cada versión están en `hq_txt_lib.DIR`; diferencias entre las dos en `docs/ZX_VERSION_EN.md`.
+
+## textos.<v>.txt
 
 Cada elemento empieza por una línea `[ID] tipo atributos`; las líneas hasta el siguiente elemento son su contenido. `#` empieza un comentario. **Las longitudes pueden cambiar**: al empaquetar se guardan los textos sin relleno y con su alineación, y es el juego el que recalcula anchos, columnas y centrados.
 
@@ -58,7 +63,7 @@ Diferencias con el original comprobadas: 131 de 140 elementos se reconstruyen id
 
 ## Misiones
 
-`asset/misiones/misionNN.txt` (14 ficheros, de `mision00` a `mision13`). Secciones:
+`asset/misiones/misionNN.<v>.txt` (14 ficheros por idioma, de `mision00` a `mision13`). Secciones:
 
 | Línea o sección | Significado |
 |---|---|
@@ -75,7 +80,7 @@ Cada casilla se identifica por columna (0-25) y fila (0-18). Para personalizar u
 
 ### Binarios
 
-`data/mision_NN_bin` (big endian):
+`data/mision_NN_es_bin` y `mision_NN_en_bin` (big endian; el empaquetador genera siempre los dos idiomas, y el juego carga el que se elige en la primera pantalla):
 ```
 +0 'HQMS'  +4 versión (word, 1)  +6 número de misión (word)
 +8  4 héroes × [columna, fila, gráfico]  (12 bytes)
@@ -84,6 +89,6 @@ Cada casilla se identifica por columna (0-25) y fila (0-18). Para personalizar u
 +48 datos: capa A (494 bytes = 26×19, fila a fila), capa B (494), indicadores (86), monstruos (n × 10), objetos (n × 3: columna, fila, código),
     objetivo (nops (word), operaciones como en un guion de textos_bin, 0). Cada sección se alinea a palabra.
 ```
-`data/misiones_indice_bin`: `'HQMI'`, versión (word, 1), N = 14 (word) y N entradas de 40 bytes: número (word), tamaño del fichero (long) y nombre (byte de longitud + 33 bytes con caracteres del juego rellenos con 0). La misión *N* está en `mision_NN_bin` (dos cifras).
+`data/misiones_indice_es_bin` y `misiones_indice_en_bin`: `'HQMI'`, versión (word, 1), N = 14 (word) y N entradas de 40 bytes: número (word), tamaño del fichero (long) y nombre (byte de longitud + 33 bytes con caracteres del juego rellenos con 0). La misión *N* está en `mision_NN_bin` (dos cifras).
 
 Las 14 misiones empaquetadas coinciden byte a byte (mapa, héroes, indicadores, monstruos, objetos y textos) con las del original (`tools/hq_misiones_verificar.py`).

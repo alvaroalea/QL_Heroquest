@@ -149,7 +149,7 @@ int main(int argc, char **argv)
             char *q = strchr(ln, '|') + 1;
             sscanf(ln, "CASO %d %d %d %d %d %d %d %d %d %d", &m, &pers, &pos[0], &pos[1], &pos[2], &pos[3], &pos[4], &pos[5], &pos[6], &pos[7]);
             sscanf(q, "%9s %d %d %d %d %d %d %d %d %d", tipo, &ev, &dados[0], &dados[1], &dados[2], &dados[3], &dados[4], &dados[5], &dados[6], &dados[7]);
-            sprintf(nm, "%smision_%02d_bin", ddir, m);
+            sprintf(nm, "%smision_%02d_es_bin", ddir, m);
             dm = leer_fichero(nm, &n);
             if (!dm) { fprintf(out, "no se puede leer %s\n", nm); return 2; }
             pers_boot(&p);

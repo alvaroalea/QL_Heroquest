@@ -15,11 +15,11 @@ int main(void)
     if (g_musica && !mus_init(mus_data)) g_musica = 0;     /* sin musica_bin tampoco hay musica */
     mus_fx_init(fx_data);                  /* efectos de sonido: solo suenan con la musica desactivada */
     mus_enable(g_musica);
-    mus_song(2);                           /* musica del menu */
+    mus_song(3);                           /* musica de la pantalla de idioma (la melodia 3, que el original no usa) */
 #ifdef BENCH
     { extern void bench(void); bench(); }
 #endif
-    menu_principal();
+    if (menu_idioma()) menu_principal();
     mus_enable(0);                         /* para la musica (la interrupcion deja de tocar el chip) y lo silencia */
     if (qs_present()) qs_silence();
     plat_shutdown();

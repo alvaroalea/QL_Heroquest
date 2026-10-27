@@ -160,7 +160,7 @@ int main(int argc, char **argv)
                 dados[nd] = atoi(q);
                 while (*q && *q != ' ') q++;
             }
-            sprintf(nm, "%smision_%02d_bin", ddir, m);
+            sprintf(nm, "%smision_%02d_es_bin", ddir, m);
             dm = leer_fichero(nm, &n);
             if (!dm) { fprintf(out, "no se puede leer %s\n", nm); return 2; }
             pers_boot(&p);

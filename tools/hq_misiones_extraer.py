@@ -1,29 +1,31 @@
 #!/usr/bin/env python3
-"""Extrae las 14 misiones a ficheros de texto editables asset/misiones/misionNN.txt (formato en docs/ZX_DATOS_QL.md).
+"""Extrae las 14 misiones a ficheros de texto editables asset/misiones/misionNN.es.txt (version espanola) o misionNN.en.txt (version inglesa: HQ_VERSION=en) (formato en docs/ZX_DATOS_QL.md).
 NO escribe en asset/misiones_ql/ (alli van las misiones retocadas). El mapa tiene 26 columnas x 19 filas; cada casilla es
 'AA.BB' (hexadecimal): AA = capa A (bits 0-5 numero de habitacion, bit 6 visible en el plano, bit 7 visible en 3D),
 BB = capa B (bit 6 pared oeste, bit 7 pared norte, bit 4 puerta oeste, bit 5 puerta norte, bit 2 puerta abierta, bit 3 puerta secreta o bloqueada).
-Uso: hq_misiones_extraer.py [directorio_salida]"""
+Uso: [HQ_VERSION=en] hq_misiones_extraer.py [directorio_salida]"""
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hqmem as m
 import hq_missions as hm
 import hq_txt_lib as T
 ROOT = T.ROOT
+D = T.D
+IDIOMA = {'es': 'ZX 128K espanol', 'en': 'ZX 128K ingles'}[T.VERSION]
 def nombre_objeto(c):
-    idx = m.byte(0xB5C3 + c - 0x30) if 0x30 <= c < 0x5D else 0; a = 0xB5F2 + 10 * idx
+    idx = m.byte(D['obj_idx'] + c - 0x30) if 0x30 <= c < 0x5D else 0; a = D['objetos'] + 10 * idx
     return ''.join(chr(m.byte(a + k)) for k in range(10) if 0x30 <= m.byte(a + k) < 0x5F).strip().lower()
 def nombres_menu():
-    """los 14 nombres del menu de misiones (guion 0x689A del overlay, una linea por fila 4..17)"""
-    seg, _ = T.guion(T.b_ov, 0x689A, None); lin = [l for l in T.guion_a_lineas(seg) if l[0] == 'texto']
+    """los 14 nombres del menu de misiones (guion del overlay, una linea por fila 4..17)"""
+    seg, _ = T.guion(T.b_ov, D['nombres_menu'], None); lin = [l for l in T.guion_a_lineas(seg) if l[0] == 'texto']
     por_fila = {l[3]: T.decodificar(l[4]).strip(' ') for l in lin}
     return [por_fila[4 + i] for i in range(14)]
 def main(dest):
     os.makedirs(dest, exist_ok=True); nombres = nombres_menu()
     for n in range(14):
         r = hm.mision(n); A, B = r['capa_a'], r['capa_b']; L = []
-        L.append('# Mision %d de Hero Quest (original ZX 128K: banco %d, 0x%04X) - generado por tools/hq_misiones_extraer.py' % (n, r['bank'], r['ptr']))
-        L.append('# EDITAR LA COPIA de asset/misiones_ql/ (este fichero se regenera). Formato y significado de los campos en docs/ZX_DATOS_QL.md.')
+        L.append('# Mision %d de Hero Quest (original %s: banco %d, 0x%04X) - generado por tools/hq_misiones_extraer.py' % (n, IDIOMA, r['bank'], r['ptr']))
+        L.append('# EDITAR LA COPIA de asset/misiones_ql/misionNN.%s.txt (este' % T.VERSION + ' fichero se regenera). Formato y significado de los campos en docs/ZX_DATOS_QL.md.')
         L.append('')
         L.append('mision %d' % n)
         L.append('nombre %s' % nombres[n])
@@ -51,7 +53,7 @@ def main(dest):
             _, at, x, y, bs = l; t = T.decodificar(bs); lead = len(t) - len(t.lstrip(' ')); core = t.strip(' ')
             if core: x += lead; t = core
             al, col = T.alineacion(x, len(t)); L.append('%02X|%s|%d|%d|%s' % (at, al, col, y, t))
-        open(os.path.join(dest, 'mision%02d.txt' % n), 'w', encoding='utf-8').write('\n'.join(L) + '\n')
+        open(os.path.join(dest, 'mision%02d.%s.txt' % (n, T.VERSION)), 'w', encoding='utf-8').write('\n'.join(L) + '\n')
     print('14 misiones en', dest)
 if __name__ == '__main__':
     main(sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'asset/misiones'))

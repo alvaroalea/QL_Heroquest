@@ -192,6 +192,11 @@ static void mostrar_msg(const Msg *m)               /* las ventanas y guiones de
         jv_boton(200);
         break;
     case MSG_POCION:                                /* «POCION DE <nombre>» y «CUANDO EMPLEAS» seguido de lo que hace */
+        if (g_idioma == IDIOMA_EN && m->a >= 4) {   /* en ingles el brebaje heroico y el agua santa tienen ventana propia */
+            tx_ventana(m->a == 4 ? TX_EN_VENT_AE3B : TX_EN_VENT_AE93);
+            jv_boton(200);
+            break;
+        }
         t = tx_str(TX_POCIONES_NOMBRE, m->a, &n);
         l = 0;
         d = tx_ventana_linea(TX_VENT_AE03, 1, &i);
@@ -199,7 +204,12 @@ static void mostrar_msg(const Msg *m)               /* las ventanas y guiones de
         while (n > 0 && t[n - 1] == 0x5F) n--;
         memcpy(l1 + l, t, (size_t)n); l += n;
         d = tx_str(TX_POCIONES_DESCRIPCION, m->b, &i);
-        memcpy(l2, d, (size_t)i);
+        if (g_idioma == IDIOMA_EN) {                /* las descripciones inglesas llevan huecos para partirlas en dos lineas: se dejan en una con un solo espacio */
+            int j, q = 0;
+            for (j = 0; j < i; j++)
+                if (d[j] != 0x5F || (q > 0 && l2[q - 1] != 0x5F)) l2[q++] = d[j];
+            i = q;
+        } else memcpy(l2, d, (size_t)i);
         while (i > 0 && l2[i - 1] == 0x5F) i--;
         s[0] = l1; lin[0] = 1; len[0] = l;
         s[1] = l2; lin[1] = 3; len[1] = i;
@@ -380,8 +390,11 @@ static int turno_jugar(int pers)                    /* TURNO_PERSONAJE (0x6DDD):
     st = turno_estado(p, pers);
     juego_redibujar(pers);
     if (st & (TURNO_VENT_SUENO | TURNO_VENT_TORMENTA)) {      /* pierde el turno */
-        if (st & TURNO_VENT_SUENO) tx_ventana(TX_VENT_AFBE);
-        if (st & TURNO_VENT_TORMENTA) tx_ventana(TX_VENT_AF87);
+        if (g_idioma == IDIOMA_EN && (st & TURNO_VENT_SUENO) && (st & TURNO_VENT_TORMENTA)) tx_ventana(TX_EN_VENT_B010);   /* en ingles hay una ventana para las dos cosas */
+        else {
+            if (st & TURNO_VENT_SUENO) tx_ventana(TX_VENT_AFBE);
+            if (st & TURNO_VENT_TORMENTA) tx_ventana(TX_VENT_AF87);
+        }
         jv_esperar(200);
         return 0;
     }

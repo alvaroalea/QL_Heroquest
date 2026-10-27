@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Empaqueta las misiones: un fichero data/mision_NN_bin por mision y data/misiones_indice_bin con el indice.
-Lee asset/misiones_ql/misionNN.txt si existe (mision retocada o personalizada) y, si no, asset/misiones/misionNN.txt.
+"""Empaqueta las misiones en los dos idiomas: un fichero data/mision_NN_es_bin y otro mision_NN_en_bin por mision y
+data/misiones_indice_es_bin y misiones_indice_en_bin con el indice.
+Lee asset/misiones_ql/misionNN.<idioma>.txt (el nombre antiguo misionNN.txt vale para el espanol) si existe
+(mision retocada o personalizada) y, si no, asset/misiones/misionNN.<idioma>.txt.
 Formato (big endian):
- mision_NN_bin:
+ mision_NN_<idioma>_bin:
   +0 'HQMS'  +4 version (word, 1)  +6 numero de mision (word)
   +8 4 heroes x [columna, fila, grafico]  (12 bytes)
   +20 numero de monstruos (byte), numero de objetos (byte), 0, 0
@@ -10,17 +12,17 @@ Formato (big endian):
   +48 datos: capa A (26 x 19 = 494 bytes), capa B (494), indicadores (86), monstruos (n x 10), objetos (n x 3: columna, fila, codigo),
       objetivo (formato de guion de textos_bin: nops (word), operaciones 1 attr alin x y long caracteres | 2 caja | 3 modo OR, 0)
   cada seccion se alinea a palabra. El mapa es de 26 columnas x 19 filas, fila a fila.
- misiones_indice_bin:
+ misiones_indice_<idioma>_bin:
   'HQMI', version (word, 1), numero de misiones N (word) y N entradas de 40 bytes:
   numero (word), tamano del fichero (long), nombre (byte de longitud + 33 bytes con caracteres del juego, rellenos con 0)
-Los ficheros se llaman mision_00_bin ... mision_13_bin (el QL no admite puntos en los nombres).
+Los ficheros se llaman mision_00_es_bin ... mision_13_en_bin (el QL no admite puntos en los nombres).
 Uso: hq_misiones_empaquetar.py"""
 import sys, os, re, struct
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hq_txt_lib as T
 ROOT = T.ROOT
-def leer(n):
-    q = os.path.join(ROOT, 'asset/misiones_ql/mision%02d.txt' % n); o = os.path.join(ROOT, 'asset/misiones/mision%02d.txt' % n)
+def leer(n, ver):
+    q, o = T.fuente('misiones', 'mision%02d' % n, ver)
     ruta = q if os.path.exists(q) else o
     d = dict(nombre='', heroes=[], mapa=[], flags=[], monstruos=[], objetos=[], objetivo=[], ruta=ruta, mision=n)
     sec = None
@@ -42,7 +44,7 @@ def leer(n):
             elif sec == 'objetivo': at, al, x, y, tx = l.split('|', 4); d['objetivo'].append((int(at, 16), al, int(x), int(y), tx))
             else: err('linea fuera de seccion')
         except (ValueError, AssertionError, IndexError): err('linea mal formada: ' + l[:40])
-    d['retocada'] = ruta == q and (not os.path.exists(o) or open(q, 'rb').read() != open(o, 'rb').read())
+    d['retocada'] = ruta == q and (not os.path.exists(o) or T.distintos(q, o))
     return d
 def validar(d):
     def e(m): raise SystemExit('ERROR: %s: %s' % (os.path.basename(d['ruta']), m))
@@ -74,16 +76,18 @@ def empaquetar(d):
     return hdr + b''.join(par(s) for s in secs)
 def main():
     os.makedirs(os.path.join(ROOT, 'data'), exist_ok=True); os.makedirs(os.path.join(ROOT, 'build/datos'), exist_ok=True)
-    idx = bytearray(b'HQMI' + struct.pack('>HH', 1, 14)); txt = ['numero fichero bytes nombre']; usadas = 0
-    for n in range(14):
-        d = leer(n); blob = empaquetar(d); usadas += d['retocada']
-        open(os.path.join(ROOT, 'data/mision_%02d_bin' % n), 'wb').write(blob)
-        nom = T.codificar(d['nombre'])
-        if len(nom) > 28: raise SystemExit('ERROR: nombre de mision demasiado largo (maximo 28)')
-        idx += struct.pack('>HL', n, len(blob)) + bytes([len(nom)]) + nom + bytes(33 - len(nom))
-        txt.append('%2d mision_%02d_bin %5d %s%s' % (n, n, len(blob), d['nombre'], '  (retocada)' if d['retocada'] else ''))
-    open(os.path.join(ROOT, 'data/misiones_indice_bin'), 'wb').write(bytes(idx))
-    open(os.path.join(ROOT, 'build/datos/indice_misiones.txt'), 'w').write('\n'.join(txt) + '\n')
-    print('\n'.join(txt)); print('data/misiones_indice_bin: %d bytes; misiones retocadas: %d' % (len(idx), usadas))
+    for ver in ('es', 'en'):
+        idx = bytearray(b'HQMI' + struct.pack('>HH', 1, 14)); txt = ['numero fichero bytes nombre']; usadas = 0
+        for n in range(14):
+            d = leer(n, ver); blob = empaquetar(d); usadas += d['retocada']
+            fich = 'mision_%02d_%s_bin' % (n, ver)
+            open(os.path.join(ROOT, 'data', fich), 'wb').write(blob)
+            nom = T.codificar(d['nombre'])
+            if len(nom) > 33: raise SystemExit('ERROR: nombre de mision demasiado largo (maximo 33)')
+            idx += struct.pack('>HL', n, len(blob)) + bytes([len(nom)]) + nom + bytes(33 - len(nom))
+            txt.append('%2d %s %5d %s%s' % (n, fich, len(blob), d['nombre'], '  (retocada)' if d['retocada'] else ''))
+        open(os.path.join(ROOT, 'data/misiones_indice_%s_bin' % ver), 'wb').write(bytes(idx))
+        open(os.path.join(ROOT, 'build/datos/indice_misiones_%s.txt' % ver), 'w').write('\n'.join(txt) + '\n')
+        print('\n'.join(txt)); print('data/misiones_indice_%s_bin: %d bytes; misiones retocadas: %d' % (ver, len(idx), usadas))
 if __name__ == '__main__':
     main()
