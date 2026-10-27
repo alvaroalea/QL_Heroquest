@@ -1,0 +1,485 @@
+/* HeroQuest QL - menus del comienzo: menu principal, eleccion de hechizos y de mision, tienda, crear personaje y controles.
+   Reproduce las pantallas del original (overlay del banco 6, docs/ZX_ANALISIS.md): los textos y sus posiciones salen de
+   data/textos_bin; los numeros TX_* los genera tools/hq_textos_empaquetar.py. */
+#include "game.h"
+#include "qsound.h"
+#include "music.h"
+#include "keys.h"
+#include "textos_ids.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+Heroe heroes[4];
+int g_mision = 0, g_manuscrita = 0, g_musica = 0, g_cursores = 1;
+
+#define NEG C_BLACK
+
+/* ---------------------------------------------------------------- ayudas */
+static void draw_line(int id, int n, int ink, int invert)       /* linea n de un guion; ink < 0: el atributo del guion */
+{
+    int x, y, attr, al, len, c;
+    const u8 *s;
+    if (!tx_guion_linea(id, n, &x, &y, &attr, &al, &s, &len)) return;
+    c = (ink >= 0) ? ink : (attr & 7);
+    gfx_text(x, y + UI_ROW0, s, len, (u8)(invert ? NEG : c), (u8)(invert ? c : NEG));
+}
+
+static void draw_msg(int row, int centrado, int i, int ink)    /* cadena i de PORT_MENSAJES */
+{
+    int n;
+    const u8 *s = tx_str(TX_PORT_MENSAJES, i, &n);
+    (void)centrado;
+    tx_cadena_centrada(row, s, n, (u8)ink, NEG);
+}
+
+static void draw_title(void) { tx_guion(TX_MENU_6653, -1, 0, 0); }
+
+static void cls(void) { gfx_clear(); }
+
+static void draw_num4(int col, int row, unsigned v, u8 ink)
+{
+    u8 d[4];
+    int i;
+    for (i = 3; i >= 0; i--) { d[i] = (u8)(0x30 + v % 10); v /= 10; }
+    gfx_text(col, row, d, 4, ink, NEG);
+}
+
+/* ---------------------------------------------------------------- hechizos */
+static const int grp_tit[4] = { TX_MENU_66F5, TX_MENU_670B, TX_MENU_6722, TX_MENU_673A };
+static const int grp_lx[4] = { 0, 16, 0, 16 }, grp_ly[4] = { 9, 9, 17, 17 };
+
+static void draw_grupos(const int *owner, int cur, int hdr)
+{
+    int g, x, y, attr, al, len;
+    const u8 *s;
+    cls();
+    if (hdr == 1) tx_guion(TX_MENU_680C, -1, 0, 0);
+    else if (hdr == 2) tx_guion(TX_MENU_686A, -1, 0, 0);
+    else if (hdr == 3) tx_guion(TX_PORT_HECHICERO_GRUPO, -1, 0, 0);
+    tx_guion(TX_MENU_6761, -1, 0, 0);
+    for (g = 0; g < 4; g++) {
+        draw_line(grp_tit[g], 0, -1, g == cur);
+        if (owner[g]) {
+            tx_guion_linea(owner[g] == 1 ? TX_MENU_6750 : TX_MENU_6757, 0, &x, &y, &attr, &al, &s, &len);
+            gfx_text(grp_lx[g], grp_ly[g] + UI_ROW0, s, len, C_CYAN, NEG);
+        }
+    }
+}
+
+static int elegir_grupo(int *owner, int who, int hdr)    /* devuelve el grupo elegido */
+{
+    int cur = 0, i;
+    u16 k;
+    while (owner[cur]) cur++;
+    draw_grupos(owner, cur, hdr);
+    for (;;) {
+        k = key_wait();
+        if (k & (K_DOWN | K_RIGHT)) { i = cur; do { cur = (cur + 1) & 3; } while (owner[cur] && cur != i); }
+        if (k & (K_UP | K_LEFT)) { i = cur; do { cur = (cur + 3) & 3; } while (owner[cur] && cur != i); }
+        if (k & K_FIRE) { owner[cur] = who; return cur; }
+        draw_grupos(owner, cur, hdr);
+    }
+}
+
+/* Primero elige el hechicero y despues el duende (elfo): el hechicero elige 3 grupos si juega solo y 1 si tambien juega el elfo
+   (los que queden sin dueño pasan al hechicero) */
+static void elegir_hechizos(void)
+{
+    int owner[4], g, n, mago = heroes[3].activo, elfo = heroes[2].activo;
+    owner[0] = owner[1] = owner[2] = owner[3] = 0;
+    heroes[2].grupos = heroes[3].grupos = 0;
+    if (!mago && !elfo) return;
+    if (mago) {
+        n = elfo ? 1 : 3;
+        while (n--) { g = elegir_grupo(owner, 2, elfo ? 3 : 2); heroes[3].grupos |= (u8)(1 << g); }
+    }
+    if (elfo) { g = elegir_grupo(owner, 1, 1); heroes[2].grupos |= (u8)(1 << g); }
+    if (mago && elfo)
+        for (g = 0; g < 4; g++) if (!owner[g]) { owner[g] = 2; heroes[3].grupos |= (u8)(1 << g); }
+    draw_grupos(owner, -1, 0);
+}
+
+/* ---------------------------------------------------------------- mision */
+static void draw_misiones(int sel)
+{
+    int i;
+    for (i = 0; i < 14; i++) draw_line(TX_MENU_689A, i, i == sel ? C_CYAN : C_RED, 0);
+}
+
+static int elegir_mision(void)
+{
+    int sel = g_mision;
+    u16 k;
+    cls(); draw_title();
+    for (;;) {
+        draw_misiones(sel);
+        k = key_wait();
+        if (k & (K_DOWN | K_RIGHT)) sel = (sel + 1) % 14;
+        if (k & (K_UP | K_LEFT)) sel = (sel + 13) % 14;
+        if (k & K_ESC) return -1;
+        if (k & K_FIRE) return sel;
+    }
+}
+
+static void mostrar_objetivo(int n)
+{
+    char name[24];
+    u8 *m;
+    sprintf(name, "mision_%02d_bin", n);
+    m = data_load(name, 0);
+    cls();
+    if (m) { tx_ops(m + rd32(m + 44), -1, 0, 0); free(m); }
+    else tx_guion(TX_MENU_66B6, -1, 0, 0);
+    key_reset();
+    while (!(key_wait() & K_FIRE)) { }
+}
+
+static void menu_jugar(void)
+{
+    int i, algun = 0, m;
+    for (i = 0; i < 4; i++) algun |= heroes[i].activo;
+    if (!algun) {                         /* "TODOS LOS JUGADORES MUERTOS / CREA JUGADORES NUEVOS" */
+        cls(); tx_guion(TX_MENU_66B6, -1, 0, 0);
+        key_reset(); key_wait();
+        return;
+    }
+    elegir_hechizos();
+    m = elegir_mision();
+    if (m < 0) return;
+    g_mision = m;
+    mostrar_objetivo(m);
+    game_run(m);
+    mus_song(2);                           /* de vuelta al menu: su musica */
+}
+
+/* ---------------------------------------------------------------- tienda */
+typedef struct { u8 arm, wpn; u16 precio; } Articulo;
+static const Articulo art[13] = {          /* armaduras (+0x0F), armas (+0x0E), precio: tabla 0x6603 del overlay */
+    { 0, 0x01, 100 }, { 0, 0x02, 150 }, { 0, 0x04, 250 }, { 0, 0x08, 400 }, { 0, 0x10, 350 }, { 0, 0x20, 150 }, { 0, 0x40, 150 },
+    { 0x01, 0, 100 }, { 0x02, 0, 120 }, { 0x04, 0, 450 }, { 0x08, 0, 850 }, { 0x80, 0, 250 }, { 0, 0, 0 }
+};
+
+static int art_poseido(const Heroe *h, int i) { return (h->armas & art[i].wpn) || (h->armadura & art[i].arm); }
+
+static void art_pos(int i, int *col, int *row, int *ancho)
+{
+    if (i < 7) { *col = 1; *row = 13 + i; *ancho = 11; }
+    else if (i < 11) { *col = 17; *row = 13 + (i - 7); *ancho = 9; }
+    else if (i == 11) { *col = 17; *row = 17; *ancho = 9; }
+    else { *col = 17; *row = 19; *ancho = 9; }
+}
+
+static void draw_art(const Heroe *h, int i, int sel)
+{
+    int col, row, ancho, n;
+    const u8 *s;
+    u8 ink = C_GREEN, paper = NEG;
+    art_pos(i, &col, &row, &ancho);
+    if (i == 12) { ink = C_CYAN; s = (const u8 *)"FINAL"; n = 5; { int x, y, attr, al; tx_guion_linea(TX_MENU_69E2, 21, &x, &y, &attr, &al, &s, &n); } }
+    else if (i == 11) { int x, y, attr, al; tx_guion_linea(TX_MENU_6A92, 0, &x, &y, &attr, &al, &s, &n); }
+    else if (i < 7) s = tx_str(TX_PANEL_ARMAS, i, &n);
+    else s = tx_str(TX_PANEL_ARMADURAS, i - 7, &n);
+    if (art_poseido(h, i)) ink = C_YELLOW;
+    if (sel) { paper = ink; ink = NEG; }
+    tx_cadena_en(col, row + UI_ROW0, ancho, s, n, 'L', ink, paper);
+}
+
+static void draw_oro(const Heroe *h)
+{
+    int x, y, attr, al, len;
+    const u8 *s;
+    tx_guion_linea(TX_MENU_6AA6, 0, &x, &y, &attr, &al, &s, &len);
+    gfx_text(x, y + UI_ROW0, s, len, C_YELLOW, NEG);
+    draw_num4(x + len, y + UI_ROW0, h->oro, C_YELLOW);
+}
+
+static void draw_tienda_heroes(int sel)
+{
+    int i;
+    for (i = 0; i < 5; i++) draw_line(TX_MENU_69E2, i, i == sel ? C_CYAN : C_RED, 0);
+}
+
+static void draw_tienda(int sel)
+{
+    cls(); draw_title();
+    ui_ink = C_MAGENTA;
+    tx_guion(TX_MENU_69E2, -1, 0, 0);
+    draw_tienda_heroes(sel);
+}
+
+static void menu_tienda(void)
+{
+    int hs = 0, it, i;
+    u16 k;
+    Heroe *h;
+    draw_tienda(hs);
+    for (;;) {
+        k = key_wait();
+        if (k & (K_DOWN | K_RIGHT)) hs = (hs + 1) % 5;
+        if (k & (K_UP | K_LEFT)) hs = (hs + 4) % 5;
+        if (k & K_ESC) return;
+        if (k & K_FIRE) {
+            if (hs == 4) return;
+            h = &heroes[hs];
+            it = 0;
+            for (i = 0; i < 13; i++) draw_art(h, i, i == it);
+            draw_oro(h);
+            for (;;) {
+                k = key_wait();
+                if (k & (K_DOWN | K_RIGHT)) it = (it + 1) % 13;
+                if (k & (K_UP | K_LEFT)) it = (it + 12) % 13;
+                if (k & K_ESC) break;
+                if (k & K_FIRE) {
+                    if (it == 12) break;
+                    if (!art_poseido(h, it) && h->oro >= art[it].precio) {
+                        h->oro = (u16)(h->oro - art[it].precio);
+                        h->armas |= art[it].wpn; h->armadura |= art[it].arm;
+                    }
+                }
+                for (i = 0; i < 13; i++) draw_art(h, i, i == it);
+                draw_oro(h);
+            }
+            draw_tienda(hs);                   /* de vuelta a la lista de heroes */
+        }
+        draw_tienda_heroes(hs);
+    }
+}
+
+/* ---------------------------------------------------------------- crear personaje */
+static const int cls_id[5] = { TX_MENU_6AC5, TX_MENU_6AD2, TX_MENU_6ADD, TX_MENU_6AE9, TX_MENU_6AF8 };
+static const int nom_id[4] = { TX_GUION_A484, TX_GUION_A48F, TX_GUION_A49A, TX_GUION_A4A5 };
+static const u8 cls_col[4] = { C_MAGENTA, C_CYAN, C_RED, C_GREEN };
+
+static void draw_nombre(int i)
+{
+    u8 b[8];
+    int k;
+    b[0] = 0x72;
+    for (k = 0; k < 6; k++) b[1 + k] = (k < heroes[i].nlen) ? heroes[i].nombre[k] : 0x5F;
+    b[7] = 0x73;
+    gfx_text(16, 4 + 3 * i + UI_ROW0, b, 8, NEG, cls_col[i]);
+}
+
+static void draw_crear(int sel)
+{
+    int i;
+    for (i = 0; i < 5; i++) draw_line(cls_id[i], 0, -1, i == sel);
+    for (i = 0; i < 4; i++) draw_nombre(i);
+}
+
+static const int op_id[3] = { TX_MENU_6B5D, TX_MENU_6B5D, TX_MENU_6B7A };
+static const int op_n[3] = { 0, 1, 0 };
+
+static void draw_opciones(int sel, int visible)
+{
+    int i;
+    gfx_cells_fill(0, 23, GCOLS, 1, NEG);
+    if (!visible) return;
+    for (i = 0; i < 3; i++) draw_line(op_id[i], op_n[i], -1, i == sel);
+}
+
+/* Teclea un nombre con la rejilla de letras (abajo): izquierda y derecha mueven, el boton escribe y FIN termina. Devuelve la longitud. */
+static int leer_nombre(u8 *dst)
+{
+    int pos = 0, n = 0, x, y, attr, al, len, i, gx, c;
+    const u8 *s;
+    u16 k;
+    u8 b[6];
+    tx_guion_linea(TX_MENU_6B9B, 0, &x, &y, &attr, &al, &s, &len);
+    gx = x;
+    for (;;) {
+        for (i = 0; i < 6; i++) b[i] = (u8)(i < n ? dst[i] : 0x5F);
+        gfx_text(13, 19 + UI_ROW0, b, 6, C_WHITE, NEG);
+        gfx_text(gx, y + UI_ROW0, s, len, C_RED, NEG);
+        if (pos < 26) c = gx + pos; else c = gx + 27;
+        if (pos < 26) gfx_char(c, y + UI_ROW0, s[pos], NEG, C_RED);
+        else gfx_text(c, y + UI_ROW0, s + 27, 3, NEG, C_RED);
+        k = key_wait();
+        if (k & (K_RIGHT | K_DOWN)) pos = (pos + 1) % 27;
+        if (k & (K_LEFT | K_UP)) pos = (pos + 26) % 27;
+        if (k & K_ESC) return -1;
+        if (k & K_FIRE) {
+            if (pos == 26) return n;
+            if (n < 6) dst[n++] = s[pos];
+        }
+    }
+}
+
+static void fichero_heroe(char *path, const u8 *nom, int n)
+{
+    int i;
+    strcpy(path, plat_data_dir());
+    strcat(path, "hq_");
+    for (i = 0; i < n && i < 6; i++) { char ch = (char)nom[i]; strncat(path, (nom[i] == 0x5F) ? "_" : &ch, 1); }
+}
+
+static int guardar_heroe(const Heroe *h)
+{
+    char path[96];
+    u8 b[16];
+    FILE *f;
+    int i;
+    fichero_heroe(path, h->nombre, h->nlen);
+    f = fopen(path, "wb");
+    if (!f) return 0;
+    b[0] = 'H'; b[1] = 'Q'; b[2] = 'H'; b[3] = 1;
+    b[4] = (u8)(h->oro >> 8); b[5] = (u8)h->oro; b[6] = h->armas; b[7] = h->armadura; b[8] = h->grupos; b[9] = h->nlen;
+    for (i = 0; i < 6; i++) b[10 + i] = (i < h->nlen) ? h->nombre[i] : 0x5F;
+    i = (fwrite(b, 1, 16, f) == 16);
+    fclose(f);
+    return i;
+}
+
+static int cargar_heroe(Heroe *h, const u8 *nom, int n)
+{
+    char path[96];
+    u8 b[16];
+    FILE *f;
+    int i;
+    fichero_heroe(path, nom, n);
+    f = fopen(path, "rb");
+    if (!f) return 0;
+    i = (fread(b, 1, 16, f) == 16 && b[0] == 'H' && b[1] == 'Q' && b[2] == 'H');
+    fclose(f);
+    if (!i) return 0;
+    h->oro = (u16)((b[4] << 8) | b[5]); h->armas = b[6]; h->armadura = b[7]; h->grupos = b[8]; h->nlen = b[9] > 6 ? 6 : b[9];
+    for (i = 0; i < 6; i++) h->nombre[i] = b[10 + i];
+    return 1;
+}
+
+static void aviso(int msg, int ink)
+{
+    gfx_cells_fill(0, 21, GCOLS, 1, NEG);
+    draw_msg(21, 1, msg, ink);
+    key_reset(); key_wait();
+    gfx_cells_fill(0, 21, GCOLS, 1, NEG);
+}
+
+static void menu_crear(void)
+{
+    int hs = 0, op, r, i;
+    u8 tmp[8];
+    u16 k;
+    cls();
+    tx_guion(TX_MENU_6AB2, -1, 0, 0);
+    for (;;) {
+        draw_crear(hs);
+        k = key_wait();
+        if (k & (K_DOWN | K_RIGHT)) hs = (hs + 1) % 5;
+        if (k & (K_UP | K_LEFT)) hs = (hs + 4) % 5;
+        if (k & K_ESC) return;
+        if (k & K_FIRE) {
+            if (hs == 4) return;
+            op = 0;
+            for (;;) {
+                draw_opciones(op, 1);
+                k = key_wait();
+                if (k & (K_RIGHT | K_DOWN)) op = (op + 1) % 3;
+                if (k & (K_LEFT | K_UP)) op = (op + 2) % 3;
+                if (k & K_ESC) break;
+                if (k & K_FIRE) {
+                    draw_opciones(op, 0);
+                    if (op == 0) {                          /* NOMBRE: se teclea de nuevo (abajo) y al acabar sustituye al anterior */
+                        r = leer_nombre(tmp);
+                        if (r >= 0) { heroes[hs].nlen = (u8)r; for (i = 0; i < r; i++) heroes[hs].nombre[i] = tmp[i]; }
+                        gfx_cells_fill(0, 21, GCOLS, 3, NEG);
+                    } else if (op == 1) {                   /* CARGAR: se pide el nombre del fichero */
+                        r = leer_nombre(tmp);
+                        gfx_cells_fill(0, 21, GCOLS, 3, NEG);
+                        if (r > 0) { if (!cargar_heroe(&heroes[hs], tmp, r)) aviso(3, C_RED); }
+                    } else {                                /* GUARDAR */
+                        aviso(guardar_heroe(&heroes[hs]) ? 2 : 4, C_YELLOW);
+                    }
+                    draw_crear(hs);
+                    break;
+                }
+            }
+            draw_opciones(0, 0);
+        }
+    }
+}
+
+/* ---------------------------------------------------------------- controles */
+static void draw_controles(void)
+{
+    int n, on;
+    const u8 *s;
+    static const u8 col[4] = { C_MAGENTA, C_GREEN, C_RED, C_CYAN };
+    static const int row[4] = { 5, 6, 7, 9 };
+    static const int estado[4] = { -1, -1, -1, -1 };
+    int i;
+    cls();
+    s = tx_str(TX_PORT_CONTROLES, 0, &n);
+    tx_cadena_centrada(2 + UI_ROW0, s, n, C_YELLOW, NEG);
+    for (i = 0; i < 4; i++) {
+        s = tx_str(TX_PORT_CONTROLES, 1 + i, &n);
+        gfx_text(6, row[i] + UI_ROW0, s, n, col[i], NEG);
+        (void)estado;
+        if (i < 2) {
+            on = (i == 0) ? g_cursores : g_musica;
+            s = tx_str(TX_PORT_CONTROLES, on ? 5 : 6, &n);
+            gfx_text(6 + 11 + 0, row[i] + UI_ROW0, s, n, col[i], NEG);
+        }
+    }
+}
+
+static void menu_controles(void)
+{
+    u16 k;
+    for (;;) {
+        draw_controles();
+        k = key_wait();
+        if (k & K_1) { g_cursores = !g_cursores; plat_cursores = (u8)g_cursores; }
+        if ((k & K_2) && qs_present()) {
+            g_musica = !g_musica;
+            mus_enable(g_musica);
+            mus_song(2);
+        }
+        if (k & K_3) { g_manuscrita = !g_manuscrita; gfx_set_font(g_manuscrita ? fnt_manuscrita : fnt_normal); }
+        if (k & (K_0 | K_ESC | K_FIRE)) return;
+    }
+}
+
+/* ---------------------------------------------------------------- menu principal */
+static void draw_principal(int sel)
+{
+    int i;
+    for (i = 0; i < 4; i++) draw_line(TX_MENU_6662, i, i == sel ? C_GREEN : C_MAGENTA, 0);
+}
+
+void menu_principal(void)
+{
+    int sel = 0;
+    u16 k;
+    for (;;) {
+        cls(); draw_title();
+        for (;;) {
+            draw_principal(sel);
+            k = key_wait();
+            if (k & (K_DOWN | K_RIGHT)) sel = (sel + 1) % 4;
+            if (k & (K_UP | K_LEFT)) sel = (sel + 3) % 4;
+            if (k & K_ESC) return;                  /* salir del programa */
+            if (k & K_FIRE) break;
+        }
+        if (sel == 0) menu_jugar();
+        else if (sel == 1) menu_tienda();
+        else if (sel == 2) menu_crear();
+        else menu_controles();
+    }
+}
+
+/* ---------------------------------------------------------------- datos iniciales */
+void game_init(void)
+{
+    int i, j, x, y, attr, al, len;
+    const u8 *s;
+    pers_boot(&g_part);
+    for (i = 0; i < 4; i++) {
+        memset(&heroes[i], 0, sizeof(Heroe));
+        heroes[i].activo = 1;
+        tx_guion_linea(nom_id[i], 0, &x, &y, &attr, &al, &s, &len);
+        for (j = 0; j < len && heroes[i].nlen < 6; j++)
+            if (s[j] != 0x72 && s[j] != 0x73) heroes[i].nombre[heroes[i].nlen++] = s[j];
+    }
+}

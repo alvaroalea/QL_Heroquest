@@ -1,21 +1,27 @@
-/* Backend QL (XTC68 / qcc). SIN PROBAR en hardware: validar en QL real o emulador.
+/* Backend QL (XTC68 / qcc).
 
-   Consola: el runtime de c68 abre una ventana (centrada, con marco rojo y cursor). El juego no la usa
-   (dibuja directo en $20000 y lee el teclado con KEYROW), pero el IPC sigue metiendo cada pulsacion en la
-   cola de teclado de esa ventana, que es la que tiene el foco. Si nadie la lee, al salir SuperBASIC recibe
-   todas las teclas. Por eso: (1) la ventana se redefine a pantalla completa, negra y sin cursor,
-   (2) la cola se vacia al arrancar, en cada plat_present() y al salir (atexit). */
+   Consola: el runtime de c68 abre una ventana (centrada, con marco rojo y cursor). El juego no la usa (dibuja directo en
+   $20000 y lee el teclado con KEYROW), pero el IPC sigue metiendo cada pulsacion en la cola de teclado de esa ventana, que es
+   la que tiene el foco. Si nadie la lee, al salir SuperBASIC recibe todas las teclas. Por eso: (1) la ventana se redefine a
+   pantalla completa, negra y sin cursor, (2) la cola se vacia al arrancar, en cada plat_present() y al salir (atexit). */
 #include "platform.h"
+#include "music.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <qdos.h>
 
 u8 *screen = (u8 *)0x20000L;               /* pantalla 1 del QL estandar */
+u8 plat_cursores = 1;                      /* 0 = las teclas de cursor no cuentan (pantalla de controles) */
 
-/* ql_ipc.asm: trap #3 generico; devuelve D0 (0 = ok, negativo = error QDOS) */
+/* ql_ipc.asm */
 extern long ql_trap3(long d0, long d1, long d2, long d3, long a0, long a1);
 extern long ql_trap1(long d0, long d1, long d2, long d3);
+extern long ql_ipc(char *blk);
+extern void ql_tick_on(void);
+extern void ql_tick_off(void);
+extern long ql_ticks(void);
+extern long ql_isr_set(long on);
 
 /* Operaciones de trap #3 usadas */
 #define IO_FBYTE 0x01L                      /* D3 = timeout; D1.B = byte; ERR.NC (-1) si no hay nada */
@@ -27,14 +33,11 @@ extern long ql_trap1(long d0, long d1, long d2, long d3);
 
 static long con_in = -1L;                   /* canal QDOS de stdin (lectura) */
 static long con_out = -1L;                  /* canal QDOS de stdout (ventana) */
-extern void ql_tick_on(void);
-extern void ql_tick_off(void);
-extern long ql_ticks(void);
 static int tick_up = 0;
 static long last_tick = 0;
 static int  con_up = 0;                     /* plat_init hecho y plat_shutdown pendiente */
 static short win_def[4];                    /* ancho, alto, x, y */
-static short orig_mode = -1;                /* modo de pantalla con que se arranco (0 = modo 4, 8 = modo 8; -1 = no se pudo leer): se restaura al salir */
+static short orig_mode = -1;                /* modo de pantalla con que se arranco (0 = modo 4, 8 = modo 8): se restaura al salir */
 
 /* Vacia la cola de teclado de la consola sin esperar (timeout 0). */
 void plat_flush_input(void)
@@ -45,13 +48,12 @@ void plat_flush_input(void)
         if (ql_trap3(IO_FBYTE, 0L, 0L, 0L, con_in, 0L) != 0L) break;
 }
 
-/* Ventana de consola a pantalla completa, negra y sin cursor (tras arrancar y tras cada cambio de modo) */
+/* Ventana de consola a pantalla completa, negra y sin cursor (tras arrancar) */
 static void con_setup(void)
 {
     if (con_out >= 0L) {
         win_def[0] = 512; win_def[1] = 256; win_def[2] = 0; win_def[3] = 0;   /* pantalla completa */
         ql_trap3(SD_WDEF, 0L, 0L, -1L, con_out, (long)win_def);              /* borde negro, ancho 0 */
-        ql_trap3(SD_CLEAR, 0L, 0L, -1L, con_out, 0L);
         ql_trap3(SD_CURS, 0L, 0L, -1L, con_out, 0L);                         /* sin cursor */
     }
 }
@@ -61,9 +63,7 @@ void plat_init(void)
     short mode = -1, tv = -1;              /* -1 = leer el modo actual */
     mt_dmode(&mode, &tv);
     if (orig_mode < 0 && (mode == 0 || mode == 8)) orig_mode = mode;
-    mode = 8; tv = -1;                     /* las demos arrancan en modo 8, sin cambiar TV (el juego pide el modo 4 con plat_mode) */
-    mt_dmode(&mode, &tv);
-    /* NOTA: escribir directo en $20000 puede requerir modo supervisor (trap #0) o SD.EXTOP */
+    if (mode != 8) { mode = 8; tv = -1; mt_dmode(&mode, &tv); }   /* modo 8: 256 x 256, 8 colores; si el boot ya lo puso no se toca (borraria la pantalla de carga) */
 
     con_in  = (long)fgetchid(stdin);
     con_out = (long)fgetchid(stdout);
@@ -72,41 +72,58 @@ void plat_init(void)
     plat_flush_input();
     if (!con_up) { con_up = 1; atexit(plat_shutdown); }
 #ifndef NOTICK
-    if (!tick_up) { ql_tick_on(); tick_up = 1; last_tick = ql_ticks(); }
+    if (!tick_up) {
+        ql_tick_on(); tick_up = 1; last_tick = ql_ticks();
+#ifndef NOISR
+        mus_isr_modo(1); ql_isr_set(1L);     /* la musica corre en la tarea de 50 Hz, no en el bucle principal */
+#endif
+    }
 #endif
 }
 
-/* Cambia el modo de pantalla (MT.DMODE: D1 = 0 es el modo 4 de 512 x 256 y 8 el modo 8; sin cambiar TV), vuelve a dejar la consola a pantalla
-   completa y borra la pantalla a negro. Un cambio al mismo modo no hace nada */
-void plat_mode(int m4)
-{
-    short mode = m4 ? 0 : 8, tv = -1;
-    if ((m4 ? 1 : 0) == (int)gfx_m4) return;
-    mt_dmode(&mode, &tv);
-    con_setup();
-    gfx_set_mode(m4);
-    gfx_clear(C_BLACK);
-}
+/* Teclado: matriz del QL por IPC (KEYROW, orden 9 del 8049). Cada fila es una llamada lenta.
+   Codigo de tecla de sQLux (include/qlkeys.h): fila = 7 - (codigo >> 3), bit = codigo & 7. */
+static long kr_blk[2];                      /* long: direccion par */
 
-/* Espera de tecla para los demos: sin ella el runtime de c68 borra la pantalla al volver a QDOS.
-   Lee la matriz con el mismo comando IPC que keys_ql.c (KEYROW), pero sin depender de keys.c. */
-extern long ql_ipc(char *blk);
-static long wk_blk[2];                      /* long: direccion par */
-
-static int wk_row(int row)
+static int kr_row(int row)
 {
-    char *b = (char *)wk_blk;
+    char *b = (char *)kr_blk;
     long r;
     b[0] = 9; b[1] = 1; b[2] = 0; b[3] = 0; b[4] = 0; b[5] = 0; b[6] = (char)row; b[7] = 2;
     r = ql_ipc(b);
     return (r < 0L) ? 0 : (int)(r & 0xFF);
 }
 
+static const struct { u8 code; u16 bit; } kmap[] = {
+    { 0x22, K_DOWN },  /* K */          { 0x17, K_UP },    /* O */
+    { 0x29, K_LEFT },  /* Z */          { 0x03, K_RIGHT }, /* X */
+    { 0x36, K_FIRE },  /* espacio */
+    { 0x32, K_UP },    { 0x37, K_DOWN }, { 0x31, K_LEFT }, { 0x34, K_RIGHT },   /* cursores */
+    { 0x33, K_ESC },
+    { 0x0D, K_0 }, { 0x1B, K_1 }, { 0x09, K_2 }, { 0x19, K_3 }, { 0x2E, K_M }
+};
+#define NKMAP (sizeof(kmap) / sizeof(kmap[0]))
+
+u16 plat_keys(void)
+{
+    int rows[8], i, r;
+    unsigned int need = 0;
+    u16 k = 0;
+    for (i = 0; i < (int)NKMAP; i++) need |= 1u << (7 - (kmap[i].code >> 3));
+    for (r = 0; r < 8; r++) rows[r] = (need & (1u << r)) ? kr_row(r) : 0;
+    for (i = 0; i < (int)NKMAP; i++) {
+        if (i >= 5 && i <= 8 && !plat_cursores) continue;       /* entradas de los cursores */
+        if (rows[7 - (kmap[i].code >> 3)] & (1 << (kmap[i].code & 7))) k |= kmap[i].bit;
+    }
+    return k;
+}
+
+/* Espera de tecla: lee la matriz con el mismo comando IPC */
 static int wk_any(void)                      /* alguna tecla (salvo SHIFT/CTRL/ALT) */
 {
     int r, v;
     for (r = 0; r < 8; r++) {
-        v = wk_row(r);
+        v = kr_row(r);
         if (r == 7) v &= 0xF8;
         if (v) return 1;
     }
@@ -166,7 +183,7 @@ void _envsetup(char *env)
 }
 
 /* directorios por defecto de Toolkit II (DATA_USE / PROG_USE), que _envsetup deja en el entorno al arrancar;
-   sin Toolkit II quedan vacios. (getcdd de c68 lee SPL_USE, no DATA_USE: por eso getenv.) */
+   sin Toolkit II quedan vacios. */
 int plat_default_dir(int prog, char *buf, int max)
 {
     char *e = getenv(prog ? "PROG_USE" : "DATA_USE");
@@ -178,6 +195,16 @@ int plat_default_dir(int prog, char *buf, int max)
     return buf[0] != 0;
 }
 
+/* Prefijo de los ficheros de datos: el directorio de datos de Toolkit II si lo hay y, si no, la unidad de disco 1 */
+const char *plat_data_dir(void)
+{
+    static char dir[64];
+    if (!plat_default_dir(0, dir, sizeof(dir) - 1)) strcpy(dir, "flp1_");
+    return dir;
+}
+
+void plat_snapshot(const char *name) { (void)name; }
+
 void plat_wait_key(void)
 {
     while (wk_any()) plat_flush_input();    /* primero que suelte la tecla con la que lanzo el programa */
@@ -186,41 +213,43 @@ void plat_wait_key(void)
     plat_flush_input();
 }
 
-/* Se llama una vez por fotograma desde el bucle: aprovecha para vaciar la cola de teclado. */
-
 unsigned long plat_ticks(void) { return tick_up ? (unsigned long)ql_ticks() : 0UL; }
 
-/* Limite de 50 fotogramas por segundo: si el fotograma ha durado menos de un cuadro (20 ms), se espera al siguiente. Un fotograma que
-   ya ha durado un cuadro o mas (un QL normal: 5-10 fps) no espera nada; solo frena a un QL rapido (Super Gold Card o similar) */
-void plat_present(void)
+/* Se llama una vez por fotograma desde el bucle: vacia la cola de teclado y espera al siguiente cuadro de 50 Hz */
+int plat_present(void)
 {
+    unsigned long now;
+    long n = 1;
     plat_flush_input();
     if (tick_up) {
         while (ql_ticks() == last_tick) { }
-        last_tick = ql_ticks();
+        now = ql_ticks();
+        n = (long)(now - last_tick);        /* cuadros de 50 Hz desde la ultima vez: si el bucle tarda mas de 20 ms hay que recuperarlos */
+        last_tick = now;
     }
+    if (n > 150) n = 150;                   /* tras una pausa muy larga (carga de ficheros) no se recupera mas de 3 s */
+    if (!mus_en_isr()) { mus_mute(0); mus_tick_n((int)n); }                     /* la musica avanza un fotograma de 50 Hz por cuadro; los perdidos, sin sonar */
+    return (int)n;
 }
 
 void plat_shutdown(void)
 {
-    if (tick_up) { ql_tick_off(); tick_up = 0; }      /* antes de terminar: la tarea del reloj esta en nuestro codigo */
+    if (tick_up) { ql_isr_set(0L); mus_isr_modo(0); ql_tick_off(); tick_up = 0; }      /* antes de terminar: la tarea del reloj esta en nuestro codigo */
     if (!con_up) return;                    /* idempotente: tambien lo llama atexit */
     con_up = 0;
     plat_flush_input();
-    if (orig_mode >= 0 && orig_mode != (gfx_m4 ? 0 : 8)) {      /* el modo con que arranco el usuario */
+    if (orig_mode >= 0 && orig_mode != 8) {      /* el modo con que arranco el usuario */
         short mode = orig_mode, tv = -1;
         mt_dmode(&mode, &tv);
         con_setup();
     }
     if (con_out >= 0L) {
-        ql_trap3(SD_CLEAR, 0L, 0L, -1L, con_out, 0L);
         ql_trap3(SD_CURE, 0L, 0L, -1L, con_out, 0L);                         /* devuelve el cursor */
     }
 }
 
-/* Salida sin el \"Press a key to exit\" del runtime de c68: se limpia la consola y el trabajo se elimina a si mismo
-   con MT.FRJOB (trap #1, D0=5, D1=-1 = este trabajo, D3 = codigo de error 0). No vuelve. Si por lo que sea falla,
-   plat_exit regresa y el programa termina por el camino normal. */
+/* Salida sin el "Press a key to exit" del runtime de c68: se limpia la consola y el trabajo se elimina a si mismo
+   con MT.FRJOB (trap #1, D0=5, D1=-1 = este trabajo, D3 = codigo de error 0). No vuelve. */
 void plat_exit(void)
 {
     plat_shutdown();

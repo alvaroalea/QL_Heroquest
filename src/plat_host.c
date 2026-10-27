@@ -1,24 +1,74 @@
-/* Backend de pruebas en PC: el buffer tiene el mismo formato que la pantalla del QL. */
+/* Backend de pruebas en PC: el buffer tiene el mismo formato que la pantalla del QL. Las teclas vienen de un guion
+   (variable de entorno HQ_KEYS o fichero keys.txt): fichas separadas por espacios, una por pulsacion (se mantiene 2 cuadros
+   y se suelta 2; con el sufijo xN se mantiene N cuadros: Rx20): U D L R arriba, abajo, izquierda, derecha; F disparo; E escape; 0 1 2 3; '.' = esperar; Sxx = guardar la
+   pantalla en screen_xx.bin (sin cabecera: tools/ql2png.py <bin> <png>). Al acabarse el guion el programa termina. */
 #include "platform.h"
+#include "music.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
+
 static u8 buf[SCR_BYTES];
 u8 *screen = buf;
-void plat_init(void) {}
+u8 plat_cursores = 1;
+static char script[4096];
+static int spos = 0, hold = 0, rest = 0;
+static u16 cur = 0;
+static unsigned long frames = 0;
+
+void plat_init(void)
+{
+    const char *e = getenv("HQ_KEYS");
+    FILE *f;
+    script[0] = 0;
+    if (e) { strncpy(script, e, sizeof(script) - 1); script[sizeof(script) - 1] = 0; }
+    else if ((f = fopen("keys.txt", "r")) != NULL) { size_t n = fread(script, 1, sizeof(script) - 1, f); script[n] = 0; fclose(f); }
+}
 void plat_shutdown(void) {}
 void plat_flush_input(void) {}
-void plat_present(void)
-{
-    FILE *f = fopen("screen.bin", "wb");
-    if (f) { fwrite(buf, 1, SCR_BYTES, f); fclose(f); }       /* sin cabecera: tools/ql2png.py <bin> <png> [4] (el 4 = modo 4) */
-}
-void plat_mode(int m4)
-{
-    if ((m4 ? 1 : 0) == (int)gfx_m4) return;
-    gfx_set_mode(m4);
-    gfx_clear(C_BLACK);
-}
+void plat_exit(void) { exit(0); }
 void plat_wait_key(void) {}
-int plat_default_dir(int prog, char *buf, int max) { (void)prog; (void)max; buf[0] = 0; return 0; }
-unsigned long plat_ticks(void) { return (unsigned long)(clock() * 50L / CLOCKS_PER_SEC); }
-void plat_exit(void) {}
+int plat_default_dir(int prog, char *b, int max) { (void)prog; (void)max; b[0] = 0; return 0; }
+const char *plat_data_dir(void) { const char *e = getenv("HQ_DATA"); return e ? e : "data/"; }
+unsigned long plat_ticks(void) { return frames; }
+
+void plat_snapshot(const char *name)
+{
+    char path[64];
+    FILE *f;
+    sprintf(path, "screen_%s.bin", name);
+    f = fopen(path, "wb");
+    if (f) { fwrite(buf, 1, SCR_BYTES, f); fclose(f); }
+}
+
+int plat_present(void) { frames++; mus_mute(0); mus_tick(); return 1; }
+
+u16 plat_keys(void)
+{
+    if (hold > 0) { hold--; if (hold == 0) rest = 2; return cur; }
+    cur = 0;
+    if (rest > 0) { rest--; return 0; }
+    while (script[spos] == ' ' || script[spos] == '\n' || script[spos] == '\r') spos++;
+    if (!script[spos]) { exit(0); }
+    switch (script[spos]) {
+    case 'U': cur = K_UP; break;     case 'D': cur = K_DOWN; break;
+    case 'L': cur = K_LEFT; break;   case 'R': cur = K_RIGHT; break;
+    case 'F': cur = K_FIRE; break;   case 'E': cur = K_ESC; break;
+    case '0': cur = K_0; break;      case '1': cur = K_1; break;
+    case '2': cur = K_2; break;      case '3': cur = K_3; break;
+    case 'M': cur = K_M; break;
+    case 'S': {
+        char nm[16]; int n = 0;
+        spos++;
+        while (script[spos] && script[spos] != ' ' && n < 15) nm[n++] = script[spos++];
+        nm[n] = 0; plat_snapshot(nm);
+        return 0;
+    }
+    default: break;
+    }
+    spos++;
+    hold = 2;
+    if (script[spos] == 'x') { spos++; hold = atoi(script + spos); while (script[spos] >= '0' && script[spos] <= '9') spos++; if (hold < 1) hold = 1; }
+    return cur;
+}
