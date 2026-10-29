@@ -46,15 +46,15 @@ tmp/
 tools/__pycache__/
 data/
 build/
-    asset/capturas
+asset/otros
+asset/capturas
 asset/extraido
 asset/graficos
 asset/misiones
-asset/misiones_ql
 asset/musica
 asset/textos
-asset/textos_ql
 asset/trace
+asset/extraido*
 
 
 # Kernel Module Compile Results

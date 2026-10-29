@@ -1,0 +1,745 @@
+# Textos de Hero Quest (ZX Spectrum 128K, version en ingles) - generado por tools/hq_textos_extraer.py
+# EDITAR LA COPIA de asset/textos_ql/textos.en.txt (este fichero se regenera). Formato en docs/ZX_DATOS_QL.md.
+# Alfabeto: letras mayusculas, cifras, espacio, . , ' ! = ? y los codigos {XX} (glifo XX de la fuente; ver alfabeto del documento).
+# Las longitudes pueden cambiar: ventanas (ancho y columna), centrados y campos se recalculan al empaquetar.
+
+# ===================== VENTANAS (mensajes con marco)
+
+[VENT_AC56] ventana y=10 centro=16 ancho=9 original=0xAC56
+L|YOU FOUND
+C|NOTHING
+
+[VENT_AC6C] ventana y=10 centro=15 ancho=19 original=0xAC6C
+L|YOU SET OFF A TRAP
+L|LOSE ONE BODY POINT
+
+[VENT_AC96] ventana y=10 centro=16 ancho=20 original=0xAC96
+L|AS YOU ARE SEARCHING,
+L|A MONSTER STALKS UP
+C|ON YOU AND ATTACKS
+
+[VENT_ACD6] ventana y=9 centro=16 ancho=14 original=0xACD6
+C|THE GHOST OF
+L|OLLAR APPEARS,
+L|CHUCKLES MADLY
+L|AND DISAPPEARS
+
+[VENT_AD12] ventana y=8 centro=15 ancho=19 original=0xAD12
+L|THE FLOOR OPENS AND
+L|YOU FALL INTO A PIT
+C|LOSE 1 BODY POINT
+C|YOU CLIMB OUT JUST
+L|AS THE FLOOR CLOSES
+
+[VENT_AD75] ventana y=8 centro=15 ancho=17 original=0xAD75
+C|A SPEAR SHOOTS
+C|FROM AN OPENING
+C|AND HITS YOU
+L|LOSE 1 BODY POINT
+
+[VENT_ADBD] ventana y=12 centro=15 ancho=10 original=0xADBD
+C|YOU FOUND
+C|
+L|GOLD COINS
+
+[VENT_ADDF] ventana y=9 centro=15 ancho=22 original=0xADDF
+C|YOU'VE FOUND A
+C|POTION OF
+L|WHEN USED IT
+C|
+
+[VENT_AE3B] ventana y=9 centro=14 ancho=21 original=0xAE3B
+C|YOU'VE FOUND A
+L|BOTTLE OF HEROIC BREW
+L|WHEN USED IT ALLOWS 2
+C|ATTACKS PER MOVE
+
+[VENT_AE93] ventana y=9 centro=14 ancho=19 original=0xAE93
+C|YOU'VE FOUND A
+L|PHIAL OF HOLY WATER
+C|WHEN USED IT KILLS
+L|ANY UNDEAD CREATURE
+
+[VENT_AF9B] ventana y=11 centro=15 ancho=13 original=0xAF9B
+L|THIS ROOM HAS
+L|BEEN SEARCHED
+
+[VENT_AFB9] ventana y=8 centro=14 ancho=17 original=0xAFB9
+L|YOU ARE ENVELOPED
+C|BY A TEMPEST
+C|MISS YOUR GO
+
+[VENT_AFF0] ventana y=9 centro=16 ancho=14 original=0xAFF0
+L|YOU ARE ASLEEP
+C|MISS YOUR GO
+
+[VENT_B010] ventana y=8 centro=14 ancho=17 original=0xB010
+L|YOU ARE ENVELOPED
+C|BY A TEMPEST AND
+C|ARE ASLEEP
+C|MISS YOUR GO
+
+[VENT_B058] ventana y=11 centro=14 ancho=11 original=0xB058
+C|SEARCH FOR
+L|TRAPS, DOORS
+C|OR TREASURE
+zona|10|21|13|14|0x8084
+zona|10|21|14|15|0x80B4
+
+[VENT_B08A] ventana y=2 centro=15 ancho=14 original=0xB08A
+L|DO YOU WANT TO
+C|ATTACK AGAIN
+C|NO       YES
+zona|10|12|5|6|0x7450
+zona|19|22|5|6|0x7457
+
+[VENT_B0C5] ventana y=10 centro=16 ancho=14 original=0xB0C5
+L|DO YOU WANT TO
+C|KEEP THE GOLD
+C|NO       YES
+zona|11|13|13|14|0x7450
+zona|20|23|13|14|0x7457
+
+[VENT_B100] ventana y=12 centro=18 ancho=15 original=0xB100
+C|DO YOU WANT TO
+L|FETCH MORE GOLD
+C|NO        YES
+zona|13|15|15|16|0x7450
+zona|23|26|15|16|0x7457
+
+[VENT_B13E] ventana y=11 centro=17 ancho=16 original=0xB13E
+C|DO YOU WANT TO
+L|SPLIT THE REWARD
+C|NO         YES
+zona|11|13|14|15|0x7450
+zona|22|25|14|15|0x7457
+
+[VENT_B17F] ventana y=9 centro=15 ancho=19 original=0xB17F
+L|DO YOU WANT TO TAKE
+L|5000 GOLD COINS. IF
+L|SO YOU WON'T BE ABLE
+L|TO ATTACK OR DEFEND
+C|YES          NO
+zona|22|24|14|15|0x7450
+zona|9|12|14|15|0x7457
+
+[VENT_BBF8] ventana y=8 centro=16 ancho=16 original=0xBBF8
+L|YOU HAVE ESCAPED
+L|FROM THE DUNGEON
+
+[VENT_BC1C] ventana y=13 centro=15 ancho=19 original=0xBC1C
+C|YOU ARE REWARDED
+L|WITH 100 GOLD COINS
+
+[VENT_BC46] ventana y=10 centro=16 ancho=22 original=0xBC46
+C|ALL THE GOLD FOUND IN
+L|THE MINE IS FOOL'S GOLD
+
+[VENT_BC76] ventana y=10 centro=14 ancho=21 original=0xBC76
+L|THE CUPBOARD CONTAINS
+C|A POTION OF HEALING
+C|AND 30 GOLD COINS
+
+[VENT_BCB9] ventana y=10 centro=17 ancho=18 original=0xBCB9
+L|THE CHEST CONTAINS
+C|100 GOLD COINS
+
+[VENT_BCE1] ventana y=10 centro=15 ancho=19 original=0xBCE1
+L|EACH CHEST CONTAINS
+C|100 GOLD COINS
+
+[VENT_BD0B] ventana y=10 centro=17 ancho=19 original=0xBD0B
+L|THE CHEST WAS EMPTY
+
+[VENT_BD22] ventana y=10 centro=15 ancho=19 original=0xBD22
+C|THE CHEST CONTAINS
+L|A POTION OF HEALING
+C|AND 50 GOLD COINS
+
+[VENT_BD5F] ventana y=10 centro=16 ancho=18 original=0xBD5F
+L|THE CHEST CONTAINS
+L|THE WAND OF RECALL
+L|AND 150 GOLD COINS
+
+[VENT_BD99] ventana y=6 centro=16 ancho=18 original=0xBD99
+L|THE CHEST CONTAINS
+C|A BOOBY TRAP
+C|LOSE 1 BODY POINT
+
+[VENT_BDD3] ventana y=7 centro=16 ancho=18 original=0xBDD3
+L|THE CHEST CONTAINS
+C|A BOOBY TRAP
+C|YOU DISABLE IT
+
+[VENT_BE0D] ventana y=13 centro=16 ancho=16 original=0xBE0D
+L|YOU FIND A SPEAR
+C|IN THE ARMOURY
+
+[VENT_BE31] ventana y=13 centro=16 ancho=16 original=0xBE31
+L|YOU FIND A SPEAR
+C|BUT DISCARD IT
+
+[VENT_BE55] ventana y=13 centro=16 ancho=17 original=0xBE55
+L|YOU FIND A SHIELD
+C|IN THE ARMOURY
+
+[VENT_BE7B] ventana y=13 centro=16 ancho=17 original=0xBE7B
+L|YOU FIND A SHIELD
+C|BUT DISCARD IT
+
+[VENT_BEA1] ventana y=9 centro=16 ancho=24 original=0xBEA1
+L|THE GARGOYLE WILL ATTACK
+C|IF THE CHEST IS OPENED
+
+[VENT_BED5] ventana y=9 centro=15 ancho=23 original=0xBED5
+L|THE GARGOYLE SPRINGS TO
+C|LIFE AND ATTACKS YOU
+
+[VENT_BF07] ventana y=8 centro=16 ancho=18 original=0xBF07
+L|THE CHEST CONTAINS
+L|250 GOLD COINS. IT
+L|WILL SLOW YOU DOWN
+
+[VENT_BF41] ventana y=9 centro=15 ancho=23 original=0xBF41
+C|PRINCE MAGNUS REWARDS
+L|YOU WITH 200 GOLD COINS
+
+[VENT_BF73] ventana y=9 centro=15 ancho=17 original=0xBF73
+L|YOU KEEP THE GOLD
+C|BUT MAY NEVER BE
+C|A CHAMPION
+
+[VENT_BFAA] ventana y=9 centro=16 ancho=20 original=0xBFAA
+L|YOU FIND MELAR'S KEY
+L|UPON TOUCHING IT THE
+C|KEY DISAPPEARS
+
+[VENT_BFEA] ventana y=9 centro=15 ancho=25 original=0xBFEA
+L|YOU FIND THE SPIRIT BLADE
+L|IN THE CENTRE OF THE ROOM
+
+[VENT_C020] ventana y=11 centro=16 ancho=16 original=0xC020
+C|YOU FIND THE
+L|TALISMAN OF LORE
+
+[VENT_C044] ventana y=11 centro=16 ancho=22 original=0xC044
+L|YOU FIND BORIN'S ARMOUR
+
+[VENT_C05E] ventana y=10 centro=17 ancho=18 original=0xC05E
+L|THE CHEST CONTAINS
+C|200 GOLD COINS
+
+[VENT_C086] ventana y=10 centro=14 ancho=22 original=0xC086
+C|THE ZOMBIE IS KARLEN.
+C|HE WAS CONSUMED BY A
+L|CHAOS SPELL HE CREATED
+
+[VENT_C0CC] ventana y=10 centro=16 ancho=23 original=0xC0CC
+L|YOU FIND YOUR EQUIPMENT
+C|STASHED IN THIS ROOM.
+C|YOU PICK IT UP
+
+[VENT_C115] ventana y=9 centro=15 ancho=25 original=0xC115
+L|YOU HAVE BROKEN THE MAGIC
+C|SEAL. THE WITCHLORD HAS
+C|AWOKEN. ONLY THE SPIRIT
+C|BLADE CAN HARM HIM
+
+[VENT_C17D] ventana y=9 centro=15 ancho=17 original=0xC17D
+L|THE ROOF SUDDENLY
+C|FALLS IN ON YOU
+
+[VENT_C1A3] ventana y=11 centro=17 ancho=17 original=0xC1A3
+L|LOSE 1 BODY POINT
+
+# ===================== VENTANAS de la ampliacion Return of the Witch Lord (salas especiales 19 a 29; direccion original en la ampliacion)
+
+[VENT_B77C] ventana y=10 centro=17 ancho=18 original=0xB77C
+C|THE CHEST CONTAINS
+C|200 GOLD COINS
+
+[VENT_B7A4] ventana y=10 centro=17 ancho=18 original=0xB7A4
+C|THE CHEST CONTAINS
+C|250 GOLD COINS
+
+[VENT_B7CC] ventana y=10 centro=17 ancho=18 original=0xB7CC
+C|THE CHEST CONTAINS
+C|300 GOLD COINS
+
+[VENT_B7F4] ventana y=10 centro=17 ancho=18 original=0xB7F4
+C|THE CHEST CONTAINS
+C|350 GOLD COINS
+
+[VENT_B81C] ventana y=10 centro=15 ancho=19 original=0xB81C
+C|EACH CHEST CONTAINS
+C|200 GOLD COINS
+
+[VENT_B845] ventana y=9 centro=15 ancho=17 original=0xB845
+C|YOU FIND 500 GOLD
+C|COINS IN A SECRET
+C|COMPARTMENT UNDER
+C|THE THRONE
+
+[VENT_B88D] ventana y=10 centro=15 ancho=19 original=0xB88D
+C|THE CHEST CONTAINS
+C|A POTION OF HEALING
+C|AND 100 GOLD COINS
+
+[VENT_B8CA] ventana y=10 centro=16 ancho=22 original=0xB8CA
+C|THE CHEST CONTAINS
+C|TWO POTIONS OF HEALING
+
+[VENT_B8FA] ventana y=6 centro=16 ancho=18 original=0xB8FA
+C|THE CHEST CONTAINS
+C|A BOOBYTRAP
+C|LOSE 1 BODY POINT
+
+[VENT_B934] ventana y=7 centro=16 ancho=18 original=0xB934
+C|THE CHEST CONTAINS
+C|A BOOBYTRAP
+C|YOU DISABLE IT
+
+[VENT_B96E] ventana y=9 centro=16 ancho=24 original=0xB96E
+C|YOU FIND A KEY OF AGRAIN
+C|ON THE BENCH. IT IS
+C|WORTH 100 GOLD COINS
+
+# ===================== GUIONES de la partida (0xA44C-0xA47C)
+
+[GUION_A44C] guion original=0xA44C
+07|L|3|21|MORCAR HAS HIS GO
+
+[GUION_A464] guion original=0xA464
+07|L|3|21|MORCAR'S GO IS OVER
+
+# ===================== GUIONES de la partida (0xA486-0xA4C1)
+
+[GUION_A48A] guion original=0xA48A
+03|L|0|0|{72}SIGMAR{73}
+
+[GUION_A495] guion original=0xA495
+05|L|0|0|{72}GRUGNI{73}
+
+[GUION_A4A0] guion original=0xA4A0
+02|L|0|0|{72}LADRIL{73}
+
+[GUION_A4AB] guion original=0xA4AB
+04|L|0|0|{72}ZOLTAN{73}
+
+[GUION_A4B6] guion original=0xA4B6
+06|L|0|0|{72}RAGNAR{73}
+
+# ===================== GUIONES de la partida (0xB23A-0xB24A)
+
+[GUION_B23A] guion original=0xB23A
+06|L|20|16|{72}         {73}
+
+# ===================== GUIONES de la partida (0xB684-0xB687)
+
+# ===================== GUIONES de la partida (0xB823-0xBB7C)
+
+[GUION_B823] guion original=0xB823
+07|L|0|0|{0D}{09}
+02|L|3|0|POTIONS
+
+[GUION_B832] guion original=0xB832
+caja|14|0|18|7
+06|L|16|0|QUEST TREASURE
+
+[GUION_B84B] guion original=0xB84B
+caja|0|9|13|9
+05|L|3|9|WEAPONS
+
+[GUION_B85D] guion original=0xB85D
+caja|14|7|18|5
+03|L|20|7|SPELLS
+
+[GUION_B86E] guion original=0xB86E
+caja|14|12|12|6
+45|L|17|12|ARMOUR
+
+[GUION_B87F] guion original=0xB87F
+caja|14|7|18|11
+03|L|20|7|SPELLS
+
+[GUION_B890] guion original=0xB890
+caja|0|9|13|3
+05|L|3|9|WEAPON
+
+[GUION_B8A1] guion original=0xB8A1
+07|L|1|18|USE TOOLKIT
+
+[GUION_B8B2] guion original=0xB8B2
+05|C|16|18|EXIT
+
+[GUION_B8BD] guion original=0xB8BD
+06|L|20|18|MAGNUS' GOLD
+
+[GUION_B8CE] guion original=0xB8CE
+06|L|21|18|DROP GOLD
+
+[GUION_B8DD] guion original=0xB8DD
+06|C|16|21|WEAPON
+06|L|23|21|CANCEL
+
+[GUION_B8F2] guion original=0xB8F2
+03|C|16|8|THE ENEMY WOUNDS YOU
+
+[GUION_B90C] guion original=0xB90C
+06|C|16|8|THE ENEMY ATTACK FAILED
+
+[GUION_B929] guion original=0xB929
+06|C|16|8|YOU KILLED THE ENEMY
+
+[GUION_B943] guion original=0xB943
+03|C|16|8|YOUR ATTACK FAILED
+
+[GUION_B95B] guion original=0xB95B
+05|C|16|10|YOU CAN'T SEE YOUR ENEMY
+03|C|16|12|THE ATTACK FAILED
+
+[GUION_B98F] guion original=0xB98F
+06|C|16|10|YOU ARE TOO FAR AWAY TO ATTACK
+
+[GUION_B9B2] guion original=0xB9B2
+03|L|4|10|YOU'RE TOO CLOSE TO
+03|C|16|12|USE THE CROSSBOW
+
+[GUION_B9DC] guion original=0xB9DC
+06|L|1|20|YOU DISABLE THE TRAP
+
+[GUION_B9F6] guion original=0xB9F6
+03|L|1|20|THE TRAP GOES OFF AS YOU
+03|C|16|21|DISABLE IT. LOSE 1 BODY POINT
+
+[GUION_BA33] guion original=0xBA33
+06|C|16|20|THE GOLD DISAPPEARS BACK TO
+06|C|16|21|THE MINE
+
+[GUION_BA5F] guion original=0xBA5F
+06|C|16|21|YOU FIND THE SWORD ORC'S BANE
+
+[GUION_BA81] guion original=0xBA81
+06|C|16|21|YOU FIND THE STAR OF THE WEST
+
+[GUION_BAA4] guion original=0xBAA4
+06|L|1|20|THE HOLY WATER DESTROYED
+06|L|1|21| 
+03|L|2|21|  
+06|L|5|21|UNDEAD MONSTER
+
+[GUION_BADC] guion original=0xBADC
+04|C|16|20|THE HOLY WATER HAS NO EFFECT
+
+[GUION_BAFE] guion original=0xBAFE
+06|L|1|20|THE SPELL WORKED
+
+[GUION_BB14] guion original=0xBB14
+06|L|3|21|THE SPELL WAS DEFLECTED
+
+[GUION_BB31] guion original=0xBB31
+03|C|16|21|THE SPELL INFLICTS 1 BODY POINT
+
+[GUION_BB56] guion original=0xBB56
+03|C|16|21|THE SPELL INFLICTS 2 BODY POINTS
+
+# ===================== GUIONES de la partida (0xBB86-0xBBF8)
+
+[GUION_BB86] guion original=0xBB86
+07|C|16|10|THE BARBARIAN HAS DIED
+
+[GUION_BBA0] guion original=0xBBA0
+07|C|16|10|THE DWARF HAS DIED
+
+[GUION_BBB6] guion original=0xBBB6
+07|C|16|10|THE ELF HAS DIED
+
+[GUION_BBCA] guion original=0xBBCA
+07|C|16|10|THE WIZARD HAS DIED
+
+[GUION_BBE1] guion original=0xBBE1
+07|C|16|10|SIR RAGNAR HAS DIED
+
+# ===================== GUIONES de la ampliacion Return of the Witch Lord (arma rota y niebla de la muerte)
+
+[GUION_B560] guion original=0xB560
+05|C|16|14|YOU BROKE YOUR WEAPON
+
+[GUION_B4EF] guion original=0xB4EF
+03|C|16|20|THE DEATH MIST ATTACKS THE
+03|C|16|21|PLAYER. LOSE 1 BODY POINT
+
+# ===================== GUIONES del menu (overlay, 0x656B-0x65E0)
+
+[MENU_656B] guion original=0x656B
+07|L|0|18|INSERT BLANK TAPE
+07|L|0|19|PRESS RECORD AND FIRE TO SAVE
+
+[MENU_65A2] guion original=0x65A2
+07|C|16|18|INSERT BLANK TAPE AND PRESS PLAY
+
+[MENU_65C8] guion original=0x65C8
+07|L|16|19|TYPE
+
+[MENU_65D7] guion original=0x65D7
+07|L|0|19|FILE
+
+# ===================== GUIONES del menu (overlay, 0x65ED-0x65F7)
+
+[MENU_65ED] guion original=0x65ED
+03|L|5|19|TESTE
+
+# ===================== GUIONES del menu (overlay, 0x665E-0x6AD6)
+
+[MENU_665E] guion original=0x665E
+06|C|16|0|HEROQUEST
+
+[MENU_666D] guion original=0x666D
+03|C|16|4|PLAY GAME
+03|C|16|5|BUY EQUIPMENT
+03|C|16|6|CREATE CHARACTER
+03|C|16|7|SET CONTROLS
+03|C|16|8|LOAD OTHER
+
+[MENU_66BA] guion original=0x66BA
+06|C|16|10|ALL THE PLAYERS ARE DEAD
+06|C|16|12|CREATE NEW ONES
+
+[MENU_66EA] guion original=0x66EA
+05|L|0|4|AIR SPELLS
+
+[MENU_66FD] guion original=0x66FD
+46|L|16|4|FIRE SPELLS
+
+[MENU_6711] guion original=0x6711
+42|L|0|12|EARTH SPELLS
+
+[MENU_6726] guion original=0x6726
+45|L|16|12|WATER SPELLS
+
+[MENU_673B] guion original=0x673B
+07|L|0|0|ELF
+
+[MENU_673F] guion original=0x673F
+07|L|0|0|WIZARD
+
+[MENU_6746] guion original=0x6746
+04|L|0|5|GENIE
+04|L|0|6|TEMPEST
+04|L|0|7|SWIFT WIND
+04|L|16|5|COURAGE
+04|L|16|6|FIRE OF WRATH
+04|L|16|7|BALL OF FLAME
+04|L|0|13|ROCK SKIN
+04|L|0|14|HEAL BODY
+04|L|0|15|PASS THRU ROCK
+04|L|16|13|SLEEP
+04|L|16|14|VEIL OF MIST
+04|L|16|15|WATER OF HEALING
+
+[MENU_67E5] guion original=0x67E5
+03|L|0|0|ELF
+03|L|0|1|CHOOSE YOUR SET OF SPELLS
+
+[MENU_6813] guion original=0x6813
+04|L|0|0|WIZARD
+04|C|16|1|CHOOSE YOUR FIRST SET OF SPELLS
+
+[MENU_6841] guion original=0x6841
+04|L|0|0|WIZARD
+04|C|16|1|CHOOSE YOUR THREE SETS OF SPELLS
+
+[MENU_69A8] guion original=0x69A8
+caja|0|12|32|9
+42|L|0|2|BARBARIAN
+42|L|0|3|DWARF
+42|L|0|4|ELF
+42|L|0|5|WIZARD
+42|L|0|6|END
+07|L|13|13|100
+07|L|13|14|150
+07|L|13|15|250
+07|L|13|16|400
+07|L|13|17|350
+07|L|13|18|150
+07|L|13|19|150
+07|L|28|13|100
+07|L|28|14|120
+07|L|28|15|450
+07|L|28|16|850
+07|L|28|17|250
+05|L|1|12|WEAPONS
+05|L|12|12|COST
+05|L|17|12|ARMOUR
+05|L|27|12|COST
+05|L|17|19|END
+
+[MENU_6A4E] guion original=0x6A4E
+04|L|17|17|TOOLKIT
+
+[MENU_6A5B] guion original=0x6A5B
+03|L|22|7|TOOLKIT
+
+[MENU_6A68] guion original=0x6A68
+06|L|25|19|{3C}=
+
+[MENU_6A74] guion original=0x6A74
+07|L|5|0|CHOOSE PLAYER
+
+[MENU_6A87] guion original=0x6A87
+03|L|4|4|BARBARIAN
+
+[MENU_6A96] guion original=0x6A96
+05|L|4|7|DWARF
+
+[MENU_6AA1] guion original=0x6AA1
+02|L|4|10|ELF
+
+[MENU_6AAA] guion original=0x6AAA
+04|L|4|13|WIZARD
+
+[MENU_6AB6] guion original=0x6AB6
+07|L|4|16|END
+
+[MENU_6ABF] guion original=0x6ABF
+07|C|16|19|      
+
+[MENU_6ACB] guion original=0x6ACB
+07|L|2|0|DEAD
+
+# ===================== GUIONES del menu (overlay, 0x6AE6-0x6BCC)
+
+[MENU_6AF6] guion original=0x6AF6
+07|C|16|10|INSERT TAPE AND PRESS FIRE
+
+[MENU_6B16] guion original=0x6B16
+06|L|0|21|NAME PLAYER
+06|L|16|21|LOAD
+
+[MENU_6B2E] guion original=0x6B2E
+06|L|22|21|SAVE
+
+[MENU_6B38] guion original=0x6B38
+06|L|3|10|THAT PLAYER IS A
+
+[MENU_6B4F] guion original=0x6B4F
+42|C|16|21|ABCDEFGHIJKLMNOPQRSTUVWXYZ {73} OK
+
+[MENU_6B75] guion original=0x6B75
+06|C|16|2|SELECT CONTROLS
+03|C|16|5|1.KEMPSTON OFF
+04|L|8|6|2.MUSIC ON
+02|C|16|7|3.CHANGE SCRIPT
+05|L|8|9|0.EXIT
+
+# ===================== TABLAS DE CADENAS
+
+[NOMBRES_HEROE] cadenas campo=9 alineacion=C original=0x7834 ; se muestran en el panel y en las ventanas
+BARBARIAN
+DWARF
+ELF
+WIZARD
+RAGNAR
+
+[NOMBRES_MONSTRUO] cadenas campo=9 alineacion=C original=0xB5D6 
+GOBLIN
+ORC
+FIMIR
+WARRIOR
+SKELETON
+ZOMBIE
+MUMMY
+SORCERER
+ULAG
+GRAK
+BALUR
+WITCHLORD
+WITCHLORD
+
+[NOMBRES_OBJETO] cadenas campo=9 alineacion=C original=0xB687 ; muebles, trampas, salida, etc.
+-
+BLOCKED
+PIT TRAP
+EXIT
+CHEST
+THRONE
+TABLE
+SPELLBOOK
+RACK
+TOMB
+BENCH
+FIREPLACE
+CUPBOARD
+BOOKCASE
+ARMOURY
+
+[POCIONES_NOMBRE] cadenas campo=10 alineacion=L original=0xAEF7 ; 4 nombres de campo fijo
+SPEED
+HEALING
+STRENGTH
+RESILIENCE
+HEROISM
+HOLY WATER
+
+[POCIONES_DESCRIPCION] cadenas campo=31 alineacion=L original=0xAF1F ; 4 descripciones de campo fijo
+DOUBLES   YOUR NUMBER OF MOVES
+RESTORES     4 BODY POINTS
+INCREASES YOUR ATTACK STRENGTH
+INCREASES YOUR DEFENCE STRENGTH
+ALLOWS 2 ATTACKS PER TURN
+KILLS ALL LIVING CREATURES
+
+[PANEL_EFECTOS] cadenas campo=11 alineacion=L original=0x9761 ; textos del panel de estado (se dibujan a partir de una posicion fija)
+STRENGTH
+RESILIENCE
+HEALING
+HEALING
+HOLY WATER
+SPEED
+HEROIC BREW
+
+[PANEL_OBJETOS] cadenas campo=16 alineacion=L original=0x97A8 
+BORIN'S ARMOUR
+WAND OF RECALL
+TALISMAN OF LORE
+ORC'S BANE
+SPIRIT BLADE
+
+[PANEL_ARMAS] cadenas campo=11 alineacion=L original=0x97F7 
+STAFF
+SHORT SWORD
+BROAD SWORD
+BATTLE AXE
+CROSSBOW
+HAND AXE
+SPEAR
+-
+
+[PANEL_ARMADURAS] cadenas campo=10 alineacion=L original=0x9846 
+SHIELD
+HELMET
+CHAIN MAIL
+ARMOUR
+
+[PANEL_HECHIZOS_B] cadenas campo=16 alineacion=L original=0x986E 
+VEIL OF MIST
+WATER OF HEALING
+SLEEP
+TEMPEST
+SWIFT WIND
+GENIE
+
+[PANEL_HECHIZOS_C] cadenas campo=14 alineacion=L original=0x98B7 
+COURAGE
+BALL OF FLAME
+FIRE OF WRATH
+PASS THRU ROCK
+ROCK SKIN
+HEAL BODY
+
+[POCIONES_INDICES] indices original=0xAEE3 ; por cada pocion: indice de nombre e indice de descripcion (no son texto)
+0|0
+1|1
+1|1
+2|2
+3|3

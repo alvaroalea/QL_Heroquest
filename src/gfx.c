@@ -102,7 +102,7 @@ void gfx_char(int col, int row, u8 code, u8 ink, u8 paper)
     u8 *p = cell_ptr(col, row);
     int r, n1, n2;
     static const u8 blank[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-    g = (font && code >= 0x30 && code < 0x30 + 68) ? font + (code - 0x30) * 8 : blank;
+    g = (font && code >= 0x30 && code < 0x30 + FONT_GLYPHS) ? font + (code - 0x30) * 8 : blank;
     for (r = 0; r < 8; r++, p += SCR_STRIDE) {
         n1 = g[r] >> 4; n2 = g[r] & 15;
         p[0] = (u8)(ink_e[ink][n1] | ink_e[paper][15 - n1]);

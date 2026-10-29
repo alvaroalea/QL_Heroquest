@@ -1,15 +1,11 @@
 #include "text.h"
-#include "idioma_en.h"
 #include <string.h>
-
-static const short idioma_en[IDIOMA_EN_N] = IDIOMA_EN_MAP;     /* elemento ingles equivalente a cada elemento espanol (-1 = solo hay espanol) */
 
 u8 ui_ink = C_MAGENTA;
 
 const u8 *tx_item(int id, int *tipo, int *cant)
 {
     const u8 *e;
-    if (g_idioma == IDIOMA_EN && id >= 0 && id < IDIOMA_EN_N && idioma_en[id] >= 0) id = idioma_en[id];     /* los textos salen en el idioma elegido */
     e = txt + 8 + 8 * id;
     if (tipo) *tipo = e[4];
     if (cant) *cant = (int)rd16(e + 6);

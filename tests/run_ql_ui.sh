@@ -12,7 +12,7 @@ qcc -DQL_ASM -DDEMO_QL -DDEMO_ESCENA=\"$ESC\" "$@" -Isrc -Ibuild/datos -O tests/
 sed 's/flp1_heroquest/flp1_cdemo/' data/boot > $D/boot
 IMG=$D/cdemo.img
 qltools $IMG -fdd CDEMO > /dev/null
-qltools $IMG -W $D/cdemo $D/boot data/*_bin data/carga_scr > /dev/null || exit 1
+qltools $IMG -W $D/cdemo $D/boot data/*_bin data/heroquest_scr > /dev/null || exit 1
 qltools $IMG -x cdemo 40000 > /dev/null
 sed "s|build/heroquest.img|$IMG|" tmp/sqlux_hq.ini > $D/sqlux.ini
 OUT=$D/ql INI=$D/sqlux.ini BOOT_WAIT=${BOOT_WAIT:-8} tools/ql_test.sh $KEYS

@@ -17,12 +17,12 @@ void jv_info_cursor(void);                          /* 0x7733: nombre bajo el cu
 void jv_guion_cifra(int id, int n, int cifra);      /* linea n de un guion con su primera cifra cambiada */
 int  jv_entrada(u16 *antes, int *movido);           /* un fotograma: mueve el cursor y devuelve 1 si se acaba de pulsar el boton, 2 si es ESC; *movido = 1 si el cursor ha cambiado de sitio */
 
+int  jv_si_no(int id);                              /* ventana de si o no con zonas de clic: 1 = SI, 0 = NO o ESC */
+
 int ui_atacar(int pers);                           /* 0x7319 */
 int ui_bolsa(int pers);                            /* 0x7877 */
 void ui_hechizo(int pers);                          /* 0x78B4: el hechizo elegido en Pers.hechizo (objetivo, lanzarlo y mensajes) */
 void ui_defensa(int heroe, int monstruo);           /* 0x9921: el monstruo ataca al heroe (pantalla de combate) */
 void ui_hooks(void);                                /* acciones de misiones: preguntas, ataques de emboscada y salas especiales */
 void ui_turno_monstruos(void);                      /* 0x9CEA: cada monstruo anda y ataca (el gancho juego_turno_monstruos) */
-void ui_combate_iniciar(void);                      /* carga los retratos */
-void ui_combate_liberar(void);
 #endif

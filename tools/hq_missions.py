@@ -8,15 +8,23 @@ Uso: hq_missions.py [salida_dir]"""
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hqmem as m
-PTR = [0xD000, 0xD678, 0xDD79, 0xE3F8, 0xEA75, 0xF1D4, 0xF94A, 0xC000, 0xC70F, 0xCE4E, 0xD51C, 0xDD46, 0xE4DC, 0xEC91]
+import hq_txt_lib as T
+def tabla():
+    """punteros de las misiones: tabla del overlay (palabras little endian); las primeras estan en el banco 1 (0xD000-0xFFFF) y, cuando el puntero
+    deja de crecer, el resto en el banco 3 (desde 0xC000)"""
+    a = T.D['mis_tabla'] - 0x5B00; o = m.OVERLAY
+    return [o[a + 2 * k] | o[a + 2 * k + 1] << 8 for k in range(T.D['n_mis'])]
+PTR = tabla()
+N_MIS = len(PTR)
 NOMBRES = ['El laberinto', 'El rescate de Sir Ragnar', 'La guarida de los orcs', 'El oro del Principe Magnus', 'El laberinto de Melar',
            'El legado orco', 'El cazador de piedra', 'Mago del fuego', 'Carrera contra el tiempo', 'El castillo misterioso',
            'El baluarte de Chaos', 'Barak Tor', 'La espada espiritual', 'Regreso a Barak Tor']
 def mision(n):
-    bank = m.BANKS[1 if n < 7 else 3]
+    nb1 = next((k for k in range(1, N_MIS) if PTR[k] < PTR[k - 1]), N_MIS)       # misiones en el banco 1
+    bank = m.BANKS[1 if n < nb1 else 3]
     off = PTR[n] - 0xC000
     d = bank[off:off + 0x900]
-    r = dict(n=n, nombre=NOMBRES[n], bank=1 if n < 7 else 3, ptr=PTR[n])
+    r = dict(n=n, nombre=NOMBRES[n] if m.JUEGO == 'hq' else '', bank=1 if n < nb1 else 3, ptr=PTR[n])
     r['capa_a'] = d[0:0x200]; r['capa_b'] = d[0x200:0x400]
     p2 = d[0x400:]
     r['heroes'] = [tuple(p2[i*3:i*3+3]) for i in range(4)]
@@ -51,7 +59,7 @@ def ascii_mapa(r):
     return '\n'.join(lines)
 if __name__ == '__main__':
     out = sys.argv[1] if len(sys.argv) > 1 else None
-    for n in range(14):
+    for n in range(N_MIS):
         r = mision(n)
         txt = 'Mision %d: %s (banco %d, 0x%04X)\nheroes %s\nmonstruos %d objetos %d\n%s\n' % (n, r['nombre'], r['bank'], r['ptr'], r['heroes'], len(r['monstruos']), len(r['objetos']), ascii_mapa(r))
         if out:

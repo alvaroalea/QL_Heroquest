@@ -1,6 +1,6 @@
 /* HeroQuest QL - menus del comienzo: menu principal, eleccion de hechizos y de mision, tienda, crear personaje y controles.
    Reproduce las pantallas del original (overlay del banco 6, docs/ZX_ANALISIS.md): los textos y sus posiciones salen de
-   data/textos_bin; los numeros TX_* los genera tools/hq_textos_empaquetar.py. */
+   data/textos_xx; los numeros TX_* los genera tools/hq_textos_empaquetar.py. */
 #include "game.h"
 #include "qsound.h"
 #include "music.h"
@@ -11,19 +11,21 @@
 #include <string.h>
 
 Heroe heroes[4];
-int g_mision = 0, g_manuscrita = 0, g_musica = 0, g_cursores = 1;
+int g_mision = 0, g_manuscrita = 0, g_musica = 0, g_raton = RAT_CURSORES;
 
 #define NEG C_BLACK
 
 /* ---------------------------------------------------------------- ayudas */
-static void draw_line(int id, int n, int ink, int invert)       /* linea n de un guion; ink < 0: el atributo del guion */
+static void draw_line_dy(int id, int n, int ink, int invert, int dy)   /* linea n de un guion desplazada dy filas; ink < 0: el atributo del guion */
 {
     int x, y, attr, al, len, c;
     const u8 *s;
     if (!tx_guion_linea(id, n, &x, &y, &attr, &al, &s, &len)) return;
     c = (ink >= 0) ? ink : (attr & 7);
-    gfx_text(x, y + UI_ROW0, s, len, (u8)(invert ? NEG : c), (u8)(invert ? c : NEG));
+    gfx_text(x, y + UI_ROW0 + dy, s, len, (u8)(invert ? NEG : c), (u8)(invert ? c : NEG));
 }
+
+static void draw_line(int id, int n, int ink, int invert) { draw_line_dy(id, n, ink, invert, 0); }
 
 static void draw_msg(int row, int centrado, int i, int ink)    /* cadena i de PORT_MENSAJES */
 {
@@ -33,7 +35,12 @@ static void draw_msg(int row, int centrado, int i, int ink)    /* cadena i de PO
     tx_cadena_centrada(row, s, n, (u8)ink, NEG);
 }
 
-static void draw_title(void) { tx_guion(TX_MENU_6653, -1, 0, 0); }
+static void draw_title(void)
+{
+    tx_guion(TX_MENU_6653, -1, 0, 0);
+    if (g_subtitulo && g_subtitulo[0])                  /* el subtitulo de la aventura (su indice) va debajo de HEROQUEST */
+        tx_cadena_centrada(2 + UI_ROW0, g_subtitulo + 1, g_subtitulo[0], C_YELLOW, NEG);
+}
 
 static void cls(void) { gfx_clear(); }
 
@@ -101,22 +108,26 @@ static void elegir_hechizos(void)
 }
 
 /* ---------------------------------------------------------------- mision */
-static void draw_misiones(int sel)
+static void draw_misiones(int sel)                   /* los nombres salen del indice de la aventura (<aventura>_xx_idx), centrados */
 {
-    int i;
-    for (i = 0; i < 14; i++) draw_line(TX_MENU_689A, i, i == sel ? C_CYAN : C_RED, 0);
+    int i, n;
+    const u8 *t;
+    for (i = 0; i < g_nmis; i++) {
+        t = data_mision_titulo(i, &n);
+        tx_cadena_centrada(4 + i + UI_ROW0, t, n, i == sel ? C_CYAN : C_RED, NEG);
+    }
 }
 
 static int elegir_mision(void)
 {
-    int sel = g_mision;
+    int sel = g_mision < g_nmis ? g_mision : 0;
     u16 k;
     cls(); draw_title();
     for (;;) {
         draw_misiones(sel);
         k = key_wait();
-        if (k & (K_DOWN | K_RIGHT)) sel = (sel + 1) % 14;
-        if (k & (K_UP | K_LEFT)) sel = (sel + 13) % 14;
+        if (k & (K_DOWN | K_RIGHT)) sel = (sel + 1) % g_nmis;
+        if (k & (K_UP | K_LEFT)) sel = (sel + g_nmis - 1) % g_nmis;
         if (k & K_ESC) return -1;
         if (k & K_FIRE) return sel;
     }
@@ -144,11 +155,11 @@ static void menu_jugar(void)
         key_reset(); key_wait();
         return;
     }
-    elegir_hechizos();
     m = elegir_mision();
     if (m < 0) return;
     g_mision = m;
     mostrar_objetivo(m);
+    elegir_hechizos();                    /* los grupos de hechizos se eligen despues de leer la introduccion de la mision */
     game_run(m);
     mus_song(2);                           /* de vuelta al menu: su musica */
 }
@@ -197,14 +208,16 @@ static void draw_oro(const Heroe *h)
 static void draw_tienda_heroes(int sel)
 {
     int i;
-    for (i = 0; i < 5; i++) draw_line(TX_MENU_69E2, i, i == sel ? C_CYAN : C_RED, 0);
+    for (i = 0; i < 5; i++) draw_line_dy(TX_MENU_69E2, i, i == sel ? C_CYAN : C_RED, 0, 2);      /* dos filas mas abajo que en el original: el subtitulo ocupa su sitio */
 }
 
 static void draw_tienda(int sel)
 {
+    int i;
     cls(); draw_title();
     ui_ink = C_MAGENTA;
-    tx_guion(TX_MENU_69E2, -1, 0, 0);
+    tx_caja(0, 12 + UI_ROW0, 32, 9, ui_ink);                  /* el guion de la tienda sin los nombres de los heroes (lineas 0 a 4), que se pintan aparte */
+    for (i = 5; i < 22; i++) draw_line(TX_MENU_69E2, i, -1, 0);
     draw_tienda_heroes(sel);
 }
 
@@ -279,32 +292,36 @@ static void draw_opciones(int sel, int visible)
     for (i = 0; i < 3; i++) draw_line(op_id[i], op_n[i], -1, i == sel);
 }
 
-/* Teclea un nombre con la rejilla de letras (abajo): izquierda y derecha mueven, el boton escribe y FIN termina. Devuelve la longitud. */
-static int leer_nombre(u8 *dst)
+/* Teclea un nombre de hasta max letras (max <= 12) con la rejilla de letras (abajo): izquierda y derecha mueven, el boton escribe la letra,
+   * borra la ultima escrita y OK termina. Se escribe en las 12 columnas que empiezan en col. Devuelve la longitud (-1 con ESC). */
+static int leer_texto(u8 *dst, int max, int col)
 {
-    int pos = 0, n = 0, x, y, attr, al, len, i, gx, c;
+    int pos = 0, n = 0, x, y, attr, al, len, i, gx;
     const u8 *s;
     u16 k;
-    u8 b[6];
-    tx_guion_linea(TX_MENU_6B9B, 0, &x, &y, &attr, &al, &s, &len);
+    u8 b[12];
+    tx_guion_linea(TX_MENU_6B9B, 0, &x, &y, &attr, &al, &s, &len);       /* A-Z, un hueco, * (glifo 0x73), un hueco y OK */
     gx = x;
     for (;;) {
-        for (i = 0; i < 6; i++) b[i] = (u8)(i < n ? dst[i] : 0x5F);
-        gfx_text(13, 19 + UI_ROW0, b, 6, C_WHITE, NEG);
+        for (i = 0; i < max; i++) b[i] = (u8)(i < n ? dst[i] : 0x5F);
+        gfx_text(col, 19 + UI_ROW0, b, max, C_WHITE, NEG);
         gfx_text(gx, y + UI_ROW0, s, len, C_RED, NEG);
-        if (pos < 26) c = gx + pos; else c = gx + 27;
-        if (pos < 26) gfx_char(c, y + UI_ROW0, s[pos], NEG, C_RED);
-        else gfx_text(c, y + UI_ROW0, s + 27, 3, NEG, C_RED);
+        if (pos < 26) gfx_char(gx + pos, y + UI_ROW0, s[pos], NEG, C_RED);
+        else if (pos == 26) gfx_char(gx + 27, y + UI_ROW0, s[27], NEG, C_RED);
+        else gfx_text(gx + 29, y + UI_ROW0, s + 29, 2, NEG, C_RED);
         k = key_wait();
-        if (k & (K_RIGHT | K_DOWN)) pos = (pos + 1) % 27;
-        if (k & (K_LEFT | K_UP)) pos = (pos + 26) % 27;
+        if (k & (K_RIGHT | K_DOWN)) pos = (pos + 1) % 28;
+        if (k & (K_LEFT | K_UP)) pos = (pos + 27) % 28;
         if (k & K_ESC) return -1;
         if (k & K_FIRE) {
-            if (pos == 26) return n;
-            if (n < 6) dst[n++] = s[pos];
+            if (pos == 27) return n;
+            if (pos == 26) { if (n > 0) n--; }
+            else if (n < max) dst[n++] = s[pos];
         }
     }
 }
+
+static int leer_nombre(u8 *dst) { return leer_texto(dst, 6, 13); }          /* nombre de un heroe: 6 letras */
 
 static void fichero_heroe(char *path, const u8 *nom, int n)
 {
@@ -424,9 +441,14 @@ static void draw_controles(void)
     for (i = 0; i < 5; i++) {
         s = tx_str(TX_PORT_CONTROLES, txt_i[i], &n);
         gfx_text(6, row[i] + UI_ROW0, s, n, col[i], NEG);
-        if (i < 2) {
-            on = (i == 0) ? g_cursores : g_musica;
-            s = tx_str(TX_PORT_CONTROLES, on ? 5 : 6, &n);
+        if (i == 0) {                                         /* tipo de raton */
+            static const char *const nom[4] = { "CURSORES", "QIMI", "QIMSI", "POINTER ENV" };
+            int c = 6 + n + 1;                                    /* detras del rotulo (cambia de largo con el idioma) */
+            if (c < 6 + 11) c = 6 + 11;
+            n = a_codigos(nom[g_raton], b);
+            gfx_text(c, row[i] + UI_ROW0, b, n, col[i], NEG);
+        } else if (i == 1) {
+            s = tx_str(TX_PORT_CONTROLES, g_musica ? 5 : 6, &n);
             gfx_text(6 + 11 + 0, row[i] + UI_ROW0, s, n, col[i], NEG);
         } else if (i == 3) {                                  /* idioma actual */
             on = 6 + n + 1;                                       /* detras del rotulo (que cambia de largo con el idioma) */
@@ -434,6 +456,15 @@ static void draw_controles(void)
             n = a_codigos(g_idioma == IDIOMA_EN ? "ENGLISH" : "ESPANOL", b);
             gfx_text(on, row[i] + UI_ROW0, b, n, col[i], NEG);
         }
+    }
+    {                                                         /* diagnostico temporal: registro de estado de la QIMSI */
+        static const char hx[] = "0123456789ABCDEF";
+        char t[16];
+        int e = plat_raton_estado() & 0xFF;
+        strcpy(t, "QIMSI FEDF XX");
+        t[11] = hx[e >> 4]; t[12] = hx[e & 15];
+        n = a_codigos(t, b);
+        gfx_text(6, 13 + UI_ROW0, b, n, C_BLUE, NEG);
     }
 }
 
@@ -444,7 +475,15 @@ static void menu_controles(void)
     for (;;) {
         draw_controles();
         k = key_wait();
-        if (k & K_1) { g_cursores = !g_cursores; plat_cursores = (u8)g_cursores; }
+        if (k & K_1) {                                            /* rota entre los tipos de raton disponibles */
+            int m = g_raton, j;
+            for (j = 0; j < 4; j++) {
+                m = (m + 1) & 3;
+                if (m == RAT_CURSORES || plat_raton_ok(m)) break;
+            }
+            g_raton = m;
+            plat_raton = (u8)m;
+        }
         if ((k & K_2) && qs_present()) {
             g_musica = !g_musica;
             mus_enable(g_musica);
@@ -464,7 +503,105 @@ static void menu_controles(void)
 static void draw_principal(int sel)
 {
     int i;
-    for (i = 0; i < 4; i++) draw_line(TX_MENU_6662, i, i == sel ? C_GREEN : C_MAGENTA, 0);
+    for (i = 0; i < 5; i++) draw_line_dy(TX_MENU_6662, i, i == sel ? C_GREEN : C_MAGENTA, 0, 1);      /* una fila mas abajo (el subtitulo de la aventura baja una) */
+}
+
+/* CARGAR OTRAS AVENTURAS: se leen los <nombre>_es_idx (o _en_idx) de la unidad de datos y se listan por su subtitulo (hasta AV_MAX); se elige una con arriba/abajo
+   y el boton, o se vuelve a escanear (por si se cambia de disco) o se vuelve sin cargar nada (tambien con ESC) */
+#define AV_MAX 6
+#define AV_FILA (11)                                        /* fila de pantalla de la primera aventura */
+
+static void av_texto(int fila, const u8 *cod, int n, int sel)
+{
+    gfx_cells_fill(0, fila, GCOLS, 1, NEG);
+    tx_cadena_centrada(fila, cod, n, sel ? C_GREEN : C_MAGENTA, NEG);
+}
+
+static void menu_cargar_aventura(void)
+{
+    static const char *const t_cab[2] = { "ELIGE LA AVENTURA", "CHOOSE THE ADVENTURE" };
+    static const char *const t_esc[2] = { "VOLVER A ESCANEAR", "SCAN AGAIN" };
+    static const char *const t_vol[2] = { "VOLVER", "BACK" };
+    static const char *const t_nin[2] = { "NO HAY AVENTURAS", "NO ADVENTURES FOUND" };
+    char nom[AV_MAX + 6][16];
+    char elegido[AV_MAX][16];
+    u8 sub[AV_MAX][36], tmp[36], b[40];
+    int en = (g_idioma == IDIOMA_EN), n, c, i, sel = 0, nsel, t;
+    u16 k;
+    for (;;) {
+        cls(); draw_title();
+        n = 0;
+        c = plat_listar(en ? "_en_idx" : "_es_idx", nom, AV_MAX + 6);
+        for (i = 0; i < c && n < AV_MAX; i++) {                      /* la de Hero Quest va primero; las que no tienen una cabecera valida no se listan */
+            if (!data_aventura_info(nom[i], tmp)) continue;
+            if (tmp[0] == 0) {                                       /* sin subtitulo: el nombre */
+                for (t = 0; nom[i][t] && t < 35; t++) tmp[1 + t] = (u8)((nom[i][t] >= 'a' && nom[i][t] <= 'z') ? nom[i][t] - 32 : nom[i][t]);
+                tmp[0] = (u8)t;
+            }
+            strcpy(elegido[n], nom[i]);
+            memcpy(sub[n], tmp, 36);
+            if (strcmp(nom[i], "heroquest") == 0 && n > 0) {         /* a la cabeza */
+                for (t = n; t > 0; t--) { strcpy(elegido[t], elegido[t - 1]); memcpy(sub[t], sub[t - 1], 36); }
+                strcpy(elegido[0], "heroquest"); memcpy(sub[0], tmp, 36);
+            }
+            n++;
+        }
+        nsel = n + 2;                                                /* aventuras, VOLVER A ESCANEAR y VOLVER */
+        if (sel >= nsel) sel = 0;
+        t = a_codigos(t_cab[en], b);
+        tx_cadena_centrada(AV_FILA - 2, b, t, C_YELLOW, NEG);
+        if (n == 0) {
+            t = a_codigos(t_nin[en], b);
+            tx_cadena_centrada(AV_FILA, b, t, C_RED, NEG);
+        }
+        key_reset();
+        for (;;) {
+            for (i = 0; i < n; i++) {                                /* "1 SUBTITULO" */
+                b[0] = (u8)('1' + i); b[1] = 0x5F;
+                memcpy(b + 2, sub[i] + 1, sub[i][0]);
+                av_texto(AV_FILA + i, b, sub[i][0] + 2, sel == i);
+            }
+            t = a_codigos(t_esc[en], b);
+            av_texto(AV_FILA + AV_MAX + 1, b, t, sel == n);
+            t = a_codigos(t_vol[en], b);
+            av_texto(AV_FILA + AV_MAX + 2, b, t, sel == n + 1);
+            k = key_wait();
+            if (k & (K_DOWN | K_RIGHT)) sel = (sel + 1) % nsel;
+            if (k & (K_UP | K_LEFT)) sel = (sel + nsel - 1) % nsel;
+            if (k & K_ESC) return;
+            if (k & K_FIRE) break;
+        }
+        if (sel == n + 1) return;                                    /* volver sin cargar nada */
+        if (sel == n) continue;                                      /* volver a escanear */
+        if (data_aventura(elegido[sel])) { g_mision = 0; return; }
+        aviso(3, C_RED);                                             /* NO SE ENCUENTRA */
+    }
+}
+
+static const u8 glifo_guion[8] = { 0x00, 0x00, 0x00, 0x00, 0x7C, 0x00, 0x00, 0x00 };
+static const u8 glifo_barra[8] = { 0x00, 0x02, 0x06, 0x0C, 0x18, 0x30, 0x60, 0x40 };
+
+/* ESC en el menu principal: pantalla negra con la pregunta; Y o S sale, cualquier otra tecla vuelve al menu */
+static int salir_qdos(void)
+{
+    static u8 fuente[FONT_BYTES];
+    static const char *const txt[2] = { "SALIR A QDOS S/N", "EXIT TO QDOS Y/N" };
+    const char *t = txt[g_idioma == IDIOMA_EN];
+    u8 b[20];
+    int n;
+    u16 k;
+    memcpy(fuente, g_manuscrita ? fnt_manuscrita : fnt_normal, FONT_BYTES);
+    memcpy(fuente + (0x40 - 0x30) * 8, glifo_barra, 8);       /* la fuente no tiene '/' */
+    for (n = 0; t[n]; n++) b[n] = (u8)(t[n] == ' ' ? 0x5F : t[n] == '/' ? 0x40 : t[n]);
+    cls();
+    gfx_set_font(fuente);
+    tx_cadena_centrada(12 + UI_ROW0, b, n, C_WHITE, NEG);
+    gfx_set_font(g_manuscrita ? fnt_manuscrita : fnt_normal);
+    plat_tecla4 = 1;
+    key_reset();
+    k = key_wait();
+    plat_tecla4 = 0;
+    return (k & K_YES) != 0;
 }
 
 void menu_principal(void)
@@ -476,23 +613,25 @@ void menu_principal(void)
         for (;;) {
             draw_principal(sel);
             k = key_wait();
-            if (k & (K_DOWN | K_RIGHT)) sel = (sel + 1) % 4;
-            if (k & (K_UP | K_LEFT)) sel = (sel + 3) % 4;
-            if (k & K_ESC) return;                  /* salir del programa */
+            if (k & (K_DOWN | K_RIGHT)) sel = (sel + 1) % 5;
+            if (k & (K_UP | K_LEFT)) sel = (sel + 4) % 5;
+            if (k & K_ESC) {
+                if (salir_qdos()) return;           /* salir del programa */
+                cls(); draw_title();
+            }
             if (k & K_FIRE) break;
         }
         if (sel == 0) menu_jugar();
         else if (sel == 1) menu_tienda();
         else if (sel == 2) menu_crear();
-        else menu_controles();
+        else if (sel == 3) menu_controles();
+        else menu_cargar_aventura();
     }
 }
 
 /* ---------------------------------------------------------------- idioma */
 /* Primera pantalla: elige el idioma de las misiones (de momento solo ellas; ventanas, pociones, monstruos y guiones siguen en espanol).
    La fuente no tiene '-' ni '/': se dibujan con una copia de la fuente donde se les ha puesto glifo (codigos 0x3F y 0x40). */
-static const u8 glifo_guion[8] = { 0x00, 0x00, 0x00, 0x00, 0x7C, 0x00, 0x00, 0x00 };
-static const u8 glifo_barra[8] = { 0x00, 0x02, 0x06, 0x0C, 0x18, 0x30, 0x60, 0x40 };
 static const char *const idioma_txt[2] = { "1 - ESPANOL / SPANISH", "2 - ENGLISH / INGLES" };
 #define IDIOMA_FILA 12
 
@@ -512,10 +651,10 @@ static void draw_idioma(int sel)
 /* 1 si se ha elegido idioma, 0 si se pulso ESC (salir del programa) */
 int menu_idioma(void)
 {
-    static u8 fuente[544];
+    static u8 fuente[FONT_BYTES];
     int sel = g_idioma, ok = 1;
     u16 k;
-    memcpy(fuente, fnt_normal, 544);
+    memcpy(fuente, fnt_normal, FONT_BYTES);
     memcpy(fuente + (0x3F - 0x30) * 8, glifo_guion, 8);
     memcpy(fuente + (0x40 - 0x30) * 8, glifo_barra, 8);
     gfx_set_font(fuente);

@@ -4,10 +4,12 @@
 #include "juego.h"
 #include "game.h"
 #include "cursor.h"
+#include "keys.h"
 #include "textos_ids.h"
 #include "accion.h"
 #include "combate.h"
 #include "mision.h"
+#include "monstruo.h"
 #include "music.h"
 #include "qsound.h"
 #include "juego_int.h"
@@ -100,7 +102,7 @@ void jv_info_cursor(void)                           /* 0x7733: nombre de lo que 
         }
         if (tipo < 0 && v->arma_alcance) v->ataque_posible = 1;
     }
-    if (tipo == 0) s = tx_str(TX_NOMBRES_MONSTRUO, idx, &n);
+    if (tipo == 0) { s = partida_tipo(p, idx)->nombre; n = partida_tipo(p, idx)->n; }
     else if (tipo == 1) s = tx_str(TX_NOMBRES_OBJETO, idx, &n);
     else if (tipo == 2) s = tx_str(TX_NOMBRES_HEROE, idx, &n);
     tx_cadena_en(3, ROW(21), 9, s, n, 'C', C_WHITE, C_BLACK);
@@ -226,9 +228,10 @@ static void mostrar_msg(const Msg *m)               /* las ventanas y guiones de
     case MSG_ORO_PANEL:
         break;
     case MSG_VENT:
-        if (m->a == TX_VENT_BD30) mus_efecto(3);                 /* 0x901B */
+        if (m->a == TX_VENT_BD30 || m->a == TX_VENT_B86E) mus_efecto(3);      /* 0x901B; B86E: el cofre trampa de la ampliacion (su original no suena, se ha puesto igual) */
         tx_ventana(m->a); jv_ventanas++; jv_boton(200);
         break;
+    case MSG_NIEBLA: tx_guion(TX_GUION_B47A, -1, 0, 0); jv_boton(100); break;      /* 0x9D30: sobre el plano, sin limpiar la pantalla */
     case MSG_BANE_ORC: tx_guion(TX_GUION_B9E3, -1, 0, 0); jv_boton(150); break;       /* 0x9D5E: dibuja y espera */
     case MSG_ESTRELLA: tx_guion(TX_GUION_BA09, -1, 0, 0); jv_boton(150); break;
     case MSG_TRAMPA_OFF: tx_guion(TX_GUION_B968, -1, 0, 0); jv_boton(150); break;
@@ -338,6 +341,17 @@ static void sonido_alternar(void)                   /* tecla M: musica -> efecto
     }
 }
 
+static int abandonar(int pers)                      /* ESC: pregunta si se abandona la mision; 1 = si. Con NO se repinta la pantalla */
+{
+    int r;
+    cursor_erase();
+    while (plat_keys() & K_ESC) plat_present();
+    r = jv_si_no(TX_PORT_ABANDONAR);
+    while (plat_keys() & K_ESC) plat_present();     /* el ESC con el que se contesta NO no cuenta */
+    if (!r) juego_redibujar(pers);
+    return r;
+}
+
 static int tirar_dados(int pers)                    /* 0x6F1C: el heroe parpadea y los puntos cambian hasta que se pulsa el boton; 1 si se pulsa ESC */
 {
     int n = 0;
@@ -351,7 +365,7 @@ static int tirar_dados(int pers)                    /* 0x6F1C: el heroe parpadea
         vista_figuras_dibujar();
         jv_panel_movimiento();
         k = plat_keys();
-        if (k & K_ESC) return 1;
+        if (k & K_ESC) { if (abandonar(pers)) return 1; m_antes = plat_keys(); continue; }
         if ((k & K_M) && !(m_antes & K_M)) sonido_alternar();
         m_antes = k;
         if (k & K_FIRE) break;
@@ -405,7 +419,7 @@ static int turno_jugar(int pers)                    /* TURNO_PERSONAJE (0x6DDD):
         int ox = cur_x, oy = cur_y;
         n = plat_present();
         k = plat_keys();
-        if (k & K_ESC) return 1;
+        if (k & K_ESC) { if (abandonar(pers)) return 1; antes = plat_keys(); continue; }
         if ((k & K_M) && !(antes & K_M)) sonido_alternar();
         boton = (k & K_FIRE) && !(antes & K_FIRE);
         antes = k;
@@ -511,6 +525,21 @@ static void turno_morcar(void)                      /* FIN_DE_RONDA (0x9CE0): el
     turno_fin_de_ronda(&g_part);
 }
 
+static int fin_mision(void)                         /* 0x6D87-0x6DA7: la mision ha terminado; si ha muerto el monstruo del epilogo salen sus paginas (una tecla para pasar de cada una) */
+{
+    int n;
+    const u8 *pg;
+    if (!g_part.v.epilogo) return JUEGO_ACABADA;
+    cursor_erase();
+    for (n = 0; (pg = data_epilogo(n)) != 0; n++) {
+        gfx_clear();
+        tx_ops(pg, -1, 0, 0);
+        key_reset();
+        key_wait();
+    }
+    return JUEGO_ACABADA;
+}
+
 int juego_partida(void)
 {
     int pers;
@@ -523,8 +552,8 @@ int juego_partida(void)
     for (;;) {
         for (pers = 0; pers < N_PERS; pers++)
             if (turno_jugar(pers)) return JUEGO_ABORTADA;
-        if (!mision_continua(&g_part)) return JUEGO_ACABADA;
+        if (!mision_continua(&g_part)) return fin_mision();
         turno_morcar();
-        if (!mision_continua(&g_part)) return JUEGO_ACABADA;
+        if (!mision_continua(&g_part)) return fin_mision();
     }
 }

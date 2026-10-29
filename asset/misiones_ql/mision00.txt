@@ -1,0 +1,84 @@
+# Mision 0 de Hero Quest (original ZX 128K: banco 1, 0xD000) - generado por tools/hq_misiones_extraer.py
+# EDITAR LA COPIA de asset/misiones_ql/ (este fichero se regenera). Formato y significado de los campos en docs/ZX_DATOS_QL.md.
+
+mision 0
+nombre EL LABERINTO
+# eventos: banderas de comportamiento (numeros de bit; cada bit repite lo especial de esa mision de Hero Quest, ver docs/ZX_MISIONES.md):
+#   0 solo el primero que sale cobra 100 | 1 Sir Ragnar | 3 oro de Magnus | 4 roca | 5 sin equipo ni hechizos | 6 cada heroe que sale cobra 100 | 7 sin hechizos de fuego | 9 castillo | 11 sala que se cierra
+eventos 0
+
+# heroes: indice|columna|fila|grafico inicial (se asigna a los 4 heroes en orden: barbaro, enano, elfo, hechicero)
+heroe 0|0|0|17
+heroe 1|25|0|38
+heroe 2|0|18|41
+heroe 3|25|18|62
+
+[mapa] 26 columnas x 19 filas, cada casilla AA.BB (capa A . capa B) en hexadecimal
+01.C0 01.80 01.80 01.80 02.80 02.80 02.80 02.80 02.80 02.80 03.80 03.80 03.80 03.80 03.80 03.80 04.80 04.80 04.80 04.80 04.80 04.80 05.80 05.80 05.80 05.80
+01.40 00.C0 00.80 00.80 00.80 16.C0 16.80 16.80 16.80 17.C0 17.20 17.80 03.41 03.00 00.C0 00.80 00.80 00.80 00.80 00.80 00.80 00.80 00.80 00.80 00.80 05.41
+01.40 00.40 00.00 00.00 00.00 16.40 16.00 16.00 16.00 17.40 17.00 17.00 03.41 03.00 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 05.41
+01.40 00.40 00.00 00.00 00.00 16.40 16.00 16.00 16.00 17.10 17.00 17.00 03.41 03.00 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 05.41
+01.40 1B.C0 1B.80 1B.80 1B.80 1C.C0 1C.80 1C.80 1C.80 17.40 17.00 17.00 03.41 03.00 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 05.41
+06.40 1B.40 1B.00 1B.00 1B.00 1C.40 1C.00 1C.00 1C.00 17.18 17.00 17.00 08.40 08.00 00.40 00.00 00.00 1D.C0 1D.80 1D.80 1D.80 1E.90 1E.80 1E.80 1E.80 0A.40
+06.40 1B.40 1B.00 1B.00 1B.00 1C.10 1C.00 1C.00 1C.00 07.C0 08.80 08.80 08.00 08.00 08.81 08.81 09.80 1D.40 1D.00 1D.00 1D.00 1E.40 1E.00 1E.00 1E.00 0A.10
+06.40 1B.40 1B.00 1B.00 1B.00 1C.40 1C.00 1C.00 1C.00 07.40 1F.C0 1F.80 1F.80 1F.80 1F.80 1F.80 09.40 1D.40 1D.00 1D.00 1D.00 1E.40 1E.00 1E.00 1E.00 0A.40
+06.40 1B.40 1B.00 1B.00 1B.00 1C.40 1C.00 1C.00 1C.00 07.40 1F.40 1F.00 1F.00 1F.00 1F.00 1F.00 09.40 1D.40 1D.00 1D.00 1D.00 1E.40 1E.00 1E.00 1E.00 0A.40
+06.40 06.81 06.81 06.29 07.80 07.80 07.80 07.80 07.80 07.00 1F.10 1F.00 1F.00 1F.00 1F.00 1F.00 09.10 09.81 09.81 09.21 09.81 09.81 0A.80 0A.80 0A.80 0A.00
+0B.40 20.C0 20.80 20.80 20.80 21.68 21.80 22.C0 22.80 00.C0 1F.40 1F.00 1F.00 1F.00 1F.00 1F.00 0E.40 23.C0 23.80 23.80 23.20 00.C0 00.80 00.80 00.80 0F.40
+0B.40 20.40 20.00 20.00 20.00 21.40 21.00 22.10 22.00 00.40 1F.40 1F.00 1F.00 1F.00 1F.00 1F.00 0E.40 23.18 23.00 23.00 23.00 00.40 00.00 00.00 00.00 0F.40
+0B.40 20.10 20.00 20.00 20.00 21.40 21.00 22.40 22.00 00.40 00.80 00.80 00.80 00.80 0D.C0 0D.80 0E.00 23.40 23.00 23.00 23.00 00.40 00.00 00.00 00.00 0F.40
+0B.40 20.40 20.00 20.00 20.00 26.60 26.80 26.80 26.80 00.40 00.00 00.00 00.00 00.00 28.C0 28.80 28.80 28.20 23.41 23.00 23.00 00.40 00.00 00.00 00.00 0F.40
+0B.40 00.C0 00.80 00.80 00.80 26.40 26.00 26.00 26.00 00.40 00.00 00.00 00.00 00.00 28.40 28.00 28.00 28.00 00.C0 00.80 00.80 00.00 00.00 00.00 00.00 0F.40
+10.40 00.40 00.00 00.00 00.00 26.40 26.00 26.00 26.00 00.40 00.00 00.00 00.00 00.00 28.40 28.00 28.00 28.00 00.40 00.00 00.00 00.00 00.00 00.00 00.00 14.40
+10.40 00.40 00.00 00.00 00.00 26.40 26.00 26.00 26.00 00.40 00.00 00.00 00.00 00.00 28.40 28.00 28.00 28.00 00.40 00.00 00.00 00.00 00.00 00.00 00.00 14.40
+10.40 00.40 00.00 00.00 00.00 26.40 26.00 26.00 26.00 00.40 00.00 00.00 00.00 00.00 28.40 28.00 28.00 28.00 00.40 00.00 00.00 00.00 00.00 00.00 00.00 14.40
+10.40 10.81 10.81 10.81 11.80 11.80 11.20 11.80 11.80 11.80 12.80 12.80 12.80 12.80 12.80 12.20 13.80 13.80 13.80 13.80 13.80 13.80 14.80 14.80 14.80 14.00
+
+[indicadores] 86 bytes iniciales (se copian a 0x6BB6 del original): marcas de habitaciones, cofres y puertas ya usados
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+
+[monstruos] estado|columna|fila|b3|b4|b5|b6|b7|tipo|estadistica   (10 bytes del original; b3-b5 los pone el juego)
+monstruo|0|0|0|0|0|0|1|18|1|1
+monstruo|129|7|2|0|0|0|1|18|1|1
+monstruo|129|22|6|0|0|0|1|18|1|1
+monstruo|129|9|9|0|0|0|1|18|1|1
+monstruo|129|16|9|0|0|0|1|18|1|1
+monstruo|129|8|11|0|0|0|1|18|1|1
+monstruo|129|15|14|0|0|0|1|18|1|1
+
+[objetos] columna|fila|codigo   (codigos de la capa de objetos: 0x30-0x5B; el nombre es solo orientativo)
+objeto|12|1|48 ; 0x30 bloqueada
+objeto|13|1|48 ; 0x30 bloqueada
+objeto|11|6|48 ; 0x30 bloqueada
+objeto|0|8|48 ; 0x30 bloqueada
+objeto|17|9|48 ; 0x30 bloqueada
+objeto|0|10|48 ; 0x30 bloqueada
+objeto|9|10|48 ; 0x30 bloqueada
+objeto|14|12|48 ; 0x30 bloqueada
+objeto|12|17|48 ; 0x30 bloqueada
+objeto|13|17|48 ; 0x30 bloqueada
+objeto|10|18|48 ; 0x30 bloqueada
+objeto|12|8|56 ; 0x38 salida
+objeto|12|9|57 ; 0x39 salida
+objeto|13|8|58 ; 0x3A salida
+objeto|13|9|59 ; 0x3B salida
+
+[objetivo] texto de presentacion: atributo(hex)|alineacion(L/C/R)|columna|fila|texto
+03|C|16|0|EL LABERINTO
+06|C|16|3|ESTA SERA TU PRUEBA FINAL
+06|C|16|4|ANTES DE ARRIESGARTE. ASEGURATE
+06|C|16|5|DE USAR TODAS LAS HABILIDADES
+06|C|16|6|QUE HAS ADQUIRIDO.
+06|C|16|8|INTENTA ENCONTRAR
+06|C|16|9|LA SALIDA. HAY VARIOS
+06|C|16|10|MONSTRUOS EN EL LABERINTO
+06|C|16|11|QUE TRATARAN DE DETENERTE
+06|C|16|12|ASI QUE VE CON CUIDADO.
+06|C|16|14|EL QUE ENCUENTRE LA SALIDA
+06|C|16|15|PRIMERO OBTENDRA 100 MONEDAS
+06|C|16|16|DE ORO, QUE PODRA USAR EN
+06|C|16|17|COMPRAR EQUIPO PARA LAS
+06|C|16|18|AVENTURAS SIGUIENTES.

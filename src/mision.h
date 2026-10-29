@@ -8,6 +8,8 @@
 #include "combate.h"
 
 #define MSG_VENT        30        /* una ventana de mensaje: a = su numero en textos_bin (TX_VENT_xxxx) */
+#define ESP_WL_1        19        /* salas especiales de la ampliacion Return of the Witch Lord: indicadores 19 a 29 (1 a 11 de su tabla); 1 a 18 son los de Hero Quest */
+#define ESP_WL_11       29
 #define MSG_ORO_PANEL   31        /* se ha cambiado el oro del heroe (0x91F7): hay que pintarlo */
 
 /* Pregunta de si o no (0x8D5E): ventana a (TX_VENT_xxxx). Antes de mostrarla hay que mostrar los mensajes que ya hay en o (la rutina del juego los vacia). 1 = si. */

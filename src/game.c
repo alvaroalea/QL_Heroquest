@@ -37,25 +37,49 @@ static void partida_desde_menu(Partida *p)
 /* Carga la mision elegida (INICIAR_MISION): 1 si ha ido bien */
 static int partida_iniciar(int mision)
 {
-    char name[24];
     u8 pr[4], *m;
     long n;
     int i, ok;
-    data_mision_nombre(name, mision);
-    m = data_load(name, &n);
+    m = data_mision_obtener(mision, &n);
     if (!m) return 0;
     for (i = 0; i < 4; i++) pr[i] = heroes[i].activo;
     partida_desde_menu(&g_part);
     ok = partida_cargar(&g_part, mision, m, n, pr);
-    free(m);
-    if (ok) mazo_barajar_azar();
+    data_mision_soltar(m);
+    if (ok) { partida_tipos(&g_part, data_tipos(0)); partida_estadisticas(&g_part, data_estadisticas(0)); mazo_barajar_azar(); }
     return ok;
+}
+
+/* La mision no ha podido empezar: mensaje (sin memoria, falta el fichero o datos no validos) y espera una tecla; despues se vuelve al menu */
+static void game_fallo(int sin_memoria, int falta)
+{
+    static const char *const msg[2][4] = {
+        { "NO HAY MEMORIA SUFICIENTE", "PARA CARGAR LA MISION", "NO SE ENCUENTRA EL FICHERO", "DATOS DE LA MISION NO VALIDOS" },
+        { "NOT ENOUGH MEMORY", "TO LOAD THE MISSION", "MISSION FILE NOT FOUND", "INVALID MISSION DATA" } };
+    static const char *const tecla[2] = { "PULSA UNA TECLA", "PRESS A KEY" };
+    const char *const *m = msg[g_idioma == IDIOMA_EN];
+    const char *l[2];
+    u8 b[32];
+    int i, j, n;
+    if (sin_memoria) { l[0] = m[0]; l[1] = m[1]; }
+    else if (falta) { l[0] = m[2]; l[1] = ""; }
+    else { l[0] = m[3]; l[1] = ""; }
+    gfx_clear();
+    for (i = 0; i < 2; i++) {
+        for (n = 0; l[i][n]; n++) b[n] = (u8)(l[i][n] == ' ' ? 0x5F : l[i][n]);
+        if (n) tx_cadena_centrada(9 + i + UI_ROW0, b, n, C_RED, C_BLACK);
+    }
+    for (n = 0; (j = tecla[g_idioma == IDIOMA_EN][n]) != 0; n++) b[n] = (u8)(j == ' ' ? 0x5F : j);
+    tx_cadena_centrada(13 + UI_ROW0, b, n, C_YELLOW, C_BLACK);
+    key_reset();
+    key_wait();
 }
 
 void game_run(int mision)
 {
-    u8 *sprites = data_load("sprites_bin", 0), *escenario = data_load("escenario_bin", 0), *vista = data_load("vista_bin", 0);
-    u8 *baldosas = data_load("baldosas_bin", 0), *marca = data_load("marca_activo_bin", 0);
+    const u8 *sprites = dat_get(DAT_SPRITES, 0), *escenario = dat_get(DAT_ESCENARIO, 0), *vista = dat_get(DAT_VISTA, 0);
+    const u8 *baldosas = dat_get(DAT_BALDOSAS, 0);
+    const u8 *marca = fonts_get(FNT_MARCA, 0);
     int r = JUEGO_ABORTADA;
 #ifdef HOST
     dado_semilla(12345UL);                            /* las pruebas de PC tienen que salir siempre igual */
@@ -67,8 +91,9 @@ void game_run(int mision)
     cursor_init(sprites);
     mus_song(1);                                      /* musica de la partida */
     while (plat_keys() & K_FIRE) plat_present();      /* el ESPACIO con el que se llego aqui no cuenta */
-    ui_combate_iniciar();
-    if (partida_iniciar(mision) && vista_datos(sprites, escenario, vista, baldosas, marca)) r = juego_partida();
+    if (!partida_iniciar(mision)) game_fallo(data_error == 2, data_error == 1);
+    else if (!vista_datos(sprites, escenario, vista, baldosas, marca)) game_fallo(vista_error == 3, 0);
+    else r = juego_partida();
     if (r == JUEGO_ACABADA) {                         /* de vuelta al menu: el oro y el equipo se quedan con el heroe y solo siguen los que han salido vivos (0x8FE4) */
         int i;
         for (i = 0; i < 4; i++) {
@@ -82,10 +107,4 @@ void game_run(int mision)
     }
     plat_snapshot("fin");
     vista_liberar();
-    ui_combate_liberar();
-    if (sprites) free(sprites);
-    if (escenario) free(escenario);
-    if (vista) free(vista);
-    if (baldosas) free(baldosas);
-    if (marca) free(marca);
 }

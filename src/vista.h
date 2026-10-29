@@ -71,7 +71,6 @@ int  vista_fotograma_base(int pers, int dir);              /* fotograma del pers
 void vista_marcar(Partida *p, int c);                      /* 0x98FB: una casilla vista en el plano y en 3D, y las contiguas en 3D */
 int  vista_ventana_off(int t);                             /* 0xB6AC: desplazamiento en el mapa de la casilla t (0 a 29) de la ventana */
 int  vista_arma(int i);                                    /* 0xAA81: byte del arma i (0 lanza ... 6 baston) */
-const int *vista_monstruo(int tipo);                       /* 0xAA8C: movimiento, dados de ataque y de defensa, oro, a quien, bit de objeto y mensaje del tipo de monstruo (0 a 19) */
 void vista_contacto(int i, int *dx, int *dy);              /* 0x81C0: las ocho casillas de al lado */
 const int *vista_panel_zona(int i);                        /* 0x7FAE: columna 1, columna 2, fila 1 y fila 2 de la zona i del panel del personaje */
 int  vista_panel_mascara(int i);                           /* 0x7FEA */

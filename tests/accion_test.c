@@ -132,7 +132,7 @@ int main(int argc, char **argv)
     if (!tx) { fprintf(out, "no se puede leer %s (hay que ejecutar tools/hq_oraculo_accion.py)\n", fn); return 2; }
     {
         char path[200];
-        sprintf(path, "%stextos_bin", ddir); txt = leer_fichero(path, 0);
+        sprintf(path, "%stextos_es", ddir); txt = leer_fichero(path, 0);
         sprintf(path, "%ssprites_bin", ddir); spr = leer_fichero(path, 0);
         sprintf(path, "%sescenario_bin", ddir); esc = leer_fichero(path, 0);
         sprintf(path, "%svista_bin", ddir); vis = leer_fichero(path, 0);
@@ -149,11 +149,12 @@ int main(int argc, char **argv)
             char *q = strchr(ln, '|') + 1;
             sscanf(ln, "CASO %d %d %d %d %d %d %d %d %d %d", &m, &pers, &pos[0], &pos[1], &pos[2], &pos[3], &pos[4], &pos[5], &pos[6], &pos[7]);
             sscanf(q, "%9s %d %d %d %d %d %d %d %d %d", tipo, &ev, &dados[0], &dados[1], &dados[2], &dados[3], &dados[4], &dados[5], &dados[6], &dados[7]);
-            sprintf(nm, "%smision_%02d_es_bin", ddir, m);
+            sprintf(nm, "%sheroquest_%02d_es", ddir, m);
             dm = leer_fichero(nm, &n);
             if (!dm) { fprintf(out, "no se puede leer %s\n", nm); return 2; }
             pers_boot(&p);
             if (!partida_cargar(&p, m, dm, n, pr)) { fprintf(out, "mision rechazada\n"); return 2; }
+            { static u8 *ix_hq; char pp_hq[80]; if (!ix_hq) { sprintf(pp_hq, "%sheroquest_es_idx", ddir); ix_hq = leer_fichero(pp_hq, 0); } partida_estadisticas(&p, data_estadisticas(ix_hq)); partida_tipos(&p, data_tipos(ix_hq)); }
             free(dm);
             strncpy(cabecera, ln, sizeof(cabecera) - 1); cabecera[sizeof(cabecera) - 1] = 0;
             caso++; en_caso = 1; mal = 0;

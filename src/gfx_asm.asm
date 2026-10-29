@@ -179,7 +179,7 @@ mkp_bucle:
 	rts
 
 ! void asm_text(u8 *dst, const u8 *font, const u8 *s, long n, const u32 *tab): n celdas de texto seguidas (8 x 8: 4 bytes por linea,
-!   128 bytes entre lineas). Codigos 0x30 a 0x73: glifo (codigo - 0x30) * 8 de la fuente; el resto, vacio. tab: asm_mkpair del color.
+!   128 bytes entre lineas). Codigos 0x30 a 0x84 (FONT_GLYPHS = 85): glifo (codigo - 0x30) * 8 de la fuente; el resto, vacio. tab: asm_mkpair del color.
 _asm_text:
 	movem.l	d2-d3/a2-a5,-(sp)
 	move.l	28(sp),a0
@@ -194,7 +194,7 @@ txt_cel:
 	move.b	(a2)+,d0
 	sub.w	#48,d0
 	bcs	txt_vacio
-	cmp.w	#68,d0
+	cmp.w	#85,d0
 	bcc	txt_vacio
 	lsl.w	#3,d0
 	lea	0(a1,d0.w),a5

@@ -18,7 +18,7 @@ void bench(void)
     plat_present();
     t = plat_ticks(); for (i = 0; i < 10; i++) gfx_clear(); medir(1, t);
     t = plat_ticks(); for (i = 0; i < 5; i++) for (r = 0; r < 24; r++) for (c = 0; c < 32; c++) gfx_char(c, r, (u8)0x41, C_WHITE, C_BLACK); medir(2, t);
-    t = plat_ticks(); for (i = 0; i < 5; i++) tx_guion(TX_MENU_689A, -1, 0, 0); medir(3, t);
+    t = plat_ticks(); for (i = 0; i < 5; i++) tx_guion(TX_MENU_6662, -1, 0, 0); medir(3, t);
     t = plat_ticks(); for (i = 0; i < 5; i++) tx_ventana(TX_PORT_FIN_MISION); medir(4, t);
     t = plat_ticks(); for (i = 0; i < 5; i++) game_draw_background(); medir(5, t);
 }

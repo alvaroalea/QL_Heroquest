@@ -91,3 +91,9 @@ Comportamientos y fallos del HeroQuest de ZX Spectrum que hay que tener en cuent
 
 ## Línea de vista del ataque (0x7F68 / 0x8D03)
 En el original cada punto de la línea de vista va seguido de `VOLCAR_BUFFER` (0x8D03: 5632 `LDI`, unos 34 ms), así que la línea «crece» sobre el plano con marcas. El port la calculaba en un buffer que nunca se mostraba; ahora `combate_punto` (gancho de `combate.c`) pinta cada punto con un cuadro de espera y la línea se deja ver 50 cuadros antes de la pantalla de combate (`alcance_visible` en `juego_combate.c`). También en los hechizos a distancia (`ui_hechizo`). Dos cuadros por punto y 50 al final.
+
+## La ampliación Return of the Witch Lord (resumen; detalle en `docs/ZX_AMPLIACION.md`)
+- Es otra imagen completa del juego: mismo motor desplazado, mismos gráficos, 10 misiones y 32 monstruos por misión (Hero Quest: 14 y 25).
+- Quita todo lo que dependía del número de misión y lo sustituye por datos de las misiones: 11 salas especiales por indicador (tabla `0x8D73`), rutinas de muerte por estadística de monstruo (`0xA76D`: la 10 abre la salida, la 14 muestra el epílogo) y banderas en el byte +6 del monstruo (bit 6: arma rota; bit 7: niebla errante).
+- La misión 9 trae 34 monstruos pero el motor solo usa 32; los textos nuevos (arma rota, niebla de la muerte, llave de Agrain, epílogo) y los nombres de monstruo nuevos no están todavía en el port.
+- Cuidado al leer sus ficheros: el nombre de una variable de SuperBASIC se guarda con el `$` (`DIR$`), `qltools -W` escribe con el nombre del fichero local y `make img` no se rehace si solo cambia el `Makefile`.

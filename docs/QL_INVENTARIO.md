@@ -51,7 +51,7 @@ Resumen de las 29 rutinas del overlay: **18 directas**, **7 inspiradas**, **3 su
 |---|---|---|---|---|
 | `0x6D81` | `BUCLE_PRINCIPAL` | Inspirada | `main()`, `menu_principal()` | Vuelve al menú tras la partida, como el original |
 | `0x6D89` | `PARTIDA` | Directa | `game_run()` (`game.c`) y `juego_partida()` | `game_run` carga la misión y los ficheros y arranca el bucle de `juego.c`; al terminar muestra la ventana provisional `PORT_FIN_MISION` |
-| `0x8BF9` | `INTERPRETE_TEXTO` | Inspirada | `tx_ops()` | Interpreta el formato nuevo de `textos_bin` (texto con posición y alineación, sin relleno), no los bytes `FF/FB/FC` del original |
+| `0x8BF9` | `INTERPRETE_TEXTO` | Inspirada | `tx_ops()` | Interpreta el formato nuevo de los textos (texto con posición y alineación, sin relleno), no los bytes `FF/FB/FC` del original |
 | `0x8CBA` | Dibuja un recuadro del guion | Directa | `tx_caja()` | Mismos glifos `0x60`-`0x67` |
 | `0x8DD1` | `VENTANA` | Inspirada | `tx_ventana()` | Ancho y centrado calculados en tiempo de ejecución |
 | `0x8E6F` | Dibuja un carácter de 8×8 | Inspirada | `gfx_char()`, `gfx_text()` (ensamblador: `asm_text` con `asm_mkpair`) | Color por punto en vez de buffer + atributos |
@@ -140,14 +140,19 @@ Ficheros: `src/accion.c` (lógica) y `ui_llave()`, `ui_ojo()` y las ventanas en 
 |---|---|---|---|---|
 | `0x727E`, `0x72B5` | `ABRIR_PUERTA` (llave) | Directa | `accion_abrir_puerta()`, `ui_llave()` | |
 | `0x860B`, `0x8662`, `0x98FB` | `ABRIR_PUERTA_CASILLA` y el recorrido de la sala | Directa | `revelar()`, `recorrer()` | |
-| `0x804E`, `0x8039` | `OJO` | Directa | `ui_ojo()` | Ventana con zonas de `textos_bin` (`tx_zonas`) |
+| `0x804E`, `0x8039` | `OJO` | Directa | `ui_ojo()` | Ventana con zonas de los textos (`tx_zonas`) |
 | `0x8079`, `0x8647`, `0x8688`, `0x86E3`-`0x86F1` | `BUSCAR_TRAMPAS_PUERTAS` | Directa | `accion_buscar_trampas()`, `buscar_celda()` | |
 | `0x80A9`, `0x862A`, `0x86F7` | `BUSCAR_TESOROS` | Directa | `accion_buscar_tesoros()`, `ver_monstruo()` | Mazo, oro, pociones, trampas, fantasma y emboscada |
 | `0x8221`, `0x8225` | Sumar oro | Directa | en `accion_buscar_tesoros()` | |
 | `0x9F94`, `0x9FAF` | `CASILLA_LIBRE` | Directa (`0x9FAF`) | `casilla_libre()`, `casilla_ocupada()` | `0x9F94` irá con los monstruos |
 | `0xA108` | `EVENTO_ALEATORIO` | Directa (con `0x70A1` aparte) | `accion_evento()` | Fosos, lanzas, techo y las rocas de las misiones 4 y 11 |
 | `0x7B31` | `MATAR_PERSONAJE` (héroes) | Directa | `heroe_muere()`, `MSG_MUERTE` | |
+| `0xAA8C` (Hero Quest), `0xA76D` (ampliación) y las rutinas de recompensa `0x7602`-`0x7647` | Estadísticas de monstruo: movimiento, dados, recompensa, jefe | Sustituida: datos de la aventura | `[estadisticas]` de `<aventura>.<idioma>.txt`, `partida_estadisticas()`, `partida_estadistica()` | Ver `docs/ZX_DATOS_QL.md` |
+| `0x764A`, `0x9ACA`, `0xC3B2` (tablas de nombre, retrato e icono por tipo de monstruo) | Tipos de monstruo | Sustituida: datos de la aventura | `[monstruos]` de `<aventura>.<idioma>.txt`, `partida_tipos()`, `partida_tipo()` | Ver `docs/ZX_DATOS_QL.md` |
+| `0x97E0`, `0x9813`, `0x9831`, `0x6D87`-`0x6DA7` (ampliación) | Rutinas de muerte por estadística: normal, abrir la salida y epílogo | Directa (sin oráculo), con las casillas como datos de la misión | `monstruo_muere()`, `muerte_propia()`, `fin_mision()`, `data_epilogo()` | Ver `docs/ZX_AMPLIACION.md` |
+| `0x732A`, `0x9A44`-`0x9A91`, `0x9C9C`-`0x9D4F` (ampliación) | Arma rota (bit 6) y niebla de la muerte (bit 7) | Directa (sin oráculo) | `combate_arma_rota()`, `monstruo_errante_paso()`, `monstruo_errante_golpe()`, `ui_errante()` | Ver `docs/ZX_AMPLIACION.md` |
 | `0x827A`, `0x82A2` | Salas especiales de las misiones | Directa | `mision_especial()` (gancho `accion_especial`) | Ver «Lo propio de cada misión» |
+| `0x8D73` (ampliación), `0x8D89`-`0x8E94` | Las 11 salas especiales de Return of the Witch Lord | Directa (sin oráculo: solo el original de Hero Quest está en el simulador) | `especial_wl()` en `mision_especial()`, indicadores 19 a 29 | Ver `docs/ZX_AMPLIACION.md` |
 | `0x7B1C`, `0x7B2B` | Cuenta de calaveras y muerte con repintado | Directas | `roca_sobre_casilla()`, `mostrar_salida()` | |
 
 ## Cursor (memoria fija, bucle de la partida)
@@ -156,7 +161,7 @@ Ficheros: `src/accion.c` (lógica) y `ui_llave()`, `ui_ojo()` y las ventanas en 
 |---|---|---|---|---|
 | `0x713E` | `MOVER_CURSOR` | Directa | `cursor_move()` (`cursor.c`) | Mismos límites (X `0x10`-`0xFC`, Y `0x0A`-`0xAE`), pasos de 4 y 2 puntos y aceleración (doble paso tras 6 fotogramas con la tecla pulsada, contadores independientes en horizontal y vertical). No mueve si hay un evento pendiente: esa comprobación llegará con el bucle de la partida |
 | `0x7168`, `0x7199`, `0x71C9`, `0x71F5` | Cursor derecha / izquierda / arriba / abajo | Directa | `paso_x()`, `paso_y()` | |
-| `0x7695` | `CURSOR_A_CASILLA` | Directa | `cursor_cell()` | Columna `(X-12)/8`, fila `(Y-2)/8` |
+| `0x7695` | `CURSOR_A_CASILLA` | No necesaria | - | El juego calcula la casilla donde la usa; la fórmula era columna `(X-12)/8`, fila `(Y-2)/8` |
 | `0xA57E` | `DIBUJAR_CURSOR` | Inspirada | `cursor_draw()`, `gfx_blit_clip()` | El original dibuja en el buffer de la vista una de dos copias del sprite (desplazada 4 puntos) según `(X - Y/2) & 4`; en el QL el sprite va con máscara directamente a pantalla, ya alineado a 4 puntos, y se recorta en el borde derecho |
 | `0xA7B6` / `0xA8DE` | Guardar y restaurar el fondo bajo el cursor | Inspirada | `cursor_draw()` / `cursor_erase()` (`gfx_rect_get/put`) | Se guarda el rectángulo de pantalla bajo el cursor (no el buffer de la vista). Como se dibuja directamente en pantalla (el original componía en un buffer y lo volcaba entero), el cursor solo se borra y se redibuja cuando se mueve, para que no parpadee |
 | `0x7201` | `PROCESAR_CLIC` | Inspirada | `turno_clic()` (`turno.c`) | Ver el apartado del turno |
@@ -167,7 +172,7 @@ Fichero: `src/music.c` (traducción a C del Z80, respetando el orden de las oper
 
 | Dirección | Rutina del original | Estado | En el QL | Notas |
 |---|---|---|---|---|
-| `0xD388` | `REPRODUCTOR` | Directa | `mus_start()`, `mus_fade()`, `mus_stop()`, `mus_frame()` | Los comandos 0 y 1 son los dos pasos de `mus_frame()` |
+| `0xD388` | `REPRODUCTOR` | Directa (`mus_fade`, `mus_stop` no compiladas: NO_COMP_UNUSED) | `mus_start()`, `mus_fade()`, `mus_stop()`, `mus_frame()` | Los comandos 0 y 1 son los dos pasos de `mus_frame()` |
 | `0xD3AA` | `EMPEZAR_MELODIA` | Directa | `mus_start()` | |
 | `0xD47E`, `0xD486` | Pone a cero 7 bytes; bajada de volumen | Directa | `mus_start()` / `mus_frame()` | |
 | `0xD496` | `ACTUALIZAR_MUSICA` | Directa | `mus_frame()` | |
@@ -191,10 +196,10 @@ Uso en el juego: melodía 2 en el menú (desde el arranque y al volver de la par
 | Datos del original | En el QL |
 |---|---|
 | Tabla de artículos de la tienda `0x6603` | `art[]` en `menu.c`, tal cual |
-| Textos de los menús (scripts del overlay) | `data/textos_bin` (`MENU_*`), con identificadores `TX_*` |
+| Textos de los menús (scripts del overlay) | `textos_es` / `textos_en` (`MENU_*`), con identificadores `TX_*` |
 | Marco de la pantalla de juego (banco 6 `0xC000`) | `data/marco_bin` |
 | Fuentes del banco 7 y baldosas `0xB1C8` | `data/fuente_normal_bin`, `fuente_manuscrita_bin`, `baldosas_bin` |
-| Misiones (bancos 1 y 3) | `data/mision_NN_es_bin`, `mision_NN_en_bin` y `misiones_indice_es_bin`, `misiones_indice_en_bin` |
+| Misiones (bancos 1 y 3) | `data/heroquest_NN_es`, `heroquest_NN_en` y `heroquest_es_idx`, `heroquest_en_idx` |
 | Sprites, escenario y retratos | `data/sprites_bin`, `escenario_bin`, `retratos_bin` (empaquetados, aún sin usar en el código) |
 
 ## No portado

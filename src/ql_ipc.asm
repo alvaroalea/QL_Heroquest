@@ -10,6 +10,12 @@
 	.extern	_ql_ticks
 	.extern	_ql_isr_set
 	.extern	_mus_isr
+	.extern	_ql_qimi_on
+	.extern	_ql_qimi_off
+	.extern	_ql_qimi_take
+	.extern	_ql_pe_rptr
+	.extern	_ql_dir_open
+	.extern	_ql_dir_close
 
 ! long ql_trap1(long d0, long d1, long d2, long d3)   -> D0 (error QDOS)
 _ql_trap1:
@@ -99,6 +105,111 @@ tick_rut:
 tick_fin:
 	rts
 
+! Raton QIMI: rutina de la lista de interrupciones externas (MT.LXINT = $1A, MT.RXINT = $1B). Cada pulso del raton levanta una
+! interrupcion: $1BFBC da el estado (bit 2 = pulso en X, bit 4 = X a la derecha, bit 5 = pulso en Y, bit 0 = Y hacia arriba) y leer
+! $1BFBE lo da por atendido y rearma la interrupcion. Suma una cuenta por pulso en qimi_dx / qimi_dy (+x derecha, +y abajo).
+! enlace: +0 siguiente (long), +4 direccion de la rutina (long)
+_ql_qimi_on:
+	move.l	a0,-(sp)
+	clr.l	qimi_dx
+	clr.l	qimi_dy
+	clr.l	qimi_link
+	lea	qimi_rut,a0
+	move.l	a0,qimi_link+4
+	lea	qimi_link,a0
+	moveq	#0x1a,d0
+	trap	#1
+	move.b	0x1bfbe,d1
+	move.l	(sp)+,a0
+	rts
+
+_ql_qimi_off:
+	move.l	a0,-(sp)
+	lea	qimi_link,a0
+	moveq	#0x1b,d0
+	trap	#1
+	move.l	(sp)+,a0
+	rts
+
+! void ql_qimi_take(long *dx, long *dy): entrega las cuentas acumuladas y las resta (sub.l a memoria no se parte con la interrupcion)
+_ql_qimi_take:
+	move.l	4(sp),a0
+	move.l	qimi_dx,d0
+	sub.l	d0,qimi_dx
+	move.l	d0,(a0)
+	move.l	8(sp),a0
+	move.l	qimi_dy,d0
+	sub.l	d0,qimi_dy
+	move.l	d0,(a0)
+	rts
+
+! long ql_pe_rptr(long chan, long *rec, long *xy): Pointer Environment, IOP.RPTR ($71) con terminacion $30 (bits 4 y 5: vuelve ya, este
+! o no el puntero en la ventana). rec = registro de puntero de 24 bytes; *xy = D1 (x en la palabra alta, y en la baja, en coordenadas
+! de pantalla): entra la posicion anterior y sale la actual. Devuelve D0 (error QDOS)
+_ql_pe_rptr:
+	movem.l	d2-d3/a2,-(sp)
+	move.l	16(sp),a0
+	move.l	20(sp),a1
+	move.l	24(sp),a2
+	move.l	(a2),d1
+	moveq	#0x30,d2
+	moveq	#-1,d3
+	moveq	#0x71,d0
+	trap	#3
+	move.l	d1,(a2)
+	movem.l	(sp)+,d2-d3/a2
+	rts
+
+! long ql_dir_open(char *nombre): IO.OPEN (trap #2) en modo directorio (modo 4 = IO.DIR) del nombre QDOS (palabra de longitud y caracteres,
+! p. ej. "flp1_"). Devuelve el canal o un error negativo
+_ql_dir_open:
+	movem.l	d2-d3,-(sp)
+	move.l	12(sp),a0
+	moveq	#1,d0
+	moveq	#-1,d1
+	moveq	#0,d2
+	moveq	#4,d3
+	trap	#2
+	tst.l	d0
+	bne	dir_open_fin
+	move.l	a0,d0
+dir_open_fin:
+	movem.l	(sp)+,d2-d3
+	rts
+
+! void ql_dir_close(long canal): IO.CLOSE
+_ql_dir_close:
+	move.l	4(sp),a0
+	moveq	#2,d0
+	trap	#2
+	rts
+
+qimi_rut:
+	movem.l	d0/a0,-(sp)
+	move.l	#0x1bfbc,a0
+	move.b	(a0),d0
+	btst	#2,d0
+	beq	qimi_y
+	btst	#4,d0
+	beq	qimi_xl
+	addq.l	#1,qimi_dx
+	bra	qimi_y
+qimi_xl:
+	subq.l	#1,qimi_dx
+qimi_y:
+	btst	#5,d0
+	beq	qimi_fin
+	btst	#0,d0
+	beq	qimi_yd
+	subq.l	#1,qimi_dy
+	bra	qimi_fin
+qimi_yd:
+	addq.l	#1,qimi_dy
+qimi_fin:
+	move.b	2(a0),d0
+	movem.l	(sp)+,d0/a0
+	rts
+
 	.sect	.data
 	.align	2
 tick_link:
@@ -111,6 +222,13 @@ isr_sp:
 isr_flag:
 	.data2	0
 	.data2	0
+qimi_link:
+	.data4	0
+	.data4	0
+qimi_dx:
+	.data4	0
+qimi_dy:
+	.data4	0
 
 	.sect	.bss
 	.align	2

@@ -17,7 +17,7 @@ Rutinas «no necesarias», decisiones de diseño y mejoras propias retiradas (y 
 ## Datos del port a QL (decidido con el usuario)
 
 - **Nombres de fichero del QL sin punto**: `sprites.bin` → `sprites_bin`. Todos los binarios del QL van a `data/`; los índices y constantes solo para el PC, a `build/datos/`.
-- **Textos** (`data/textos_bin`) y **misiones** (`data/mision_NN_es_bin` y `mision_NN_en_bin` + `data/misiones_indice_es_bin` y `misiones_indice_en_bin`) en ficheros separados del juego, para poder **traducirlos y personalizarlos sin modificar el juego**: textos con longitud variable (sin relleno; el juego recalcula anchos y centrados), un fichero por misión y un índice. Ver `docs/ZX_DATOS_QL.md`.
+- **Textos** (`data/textos_es` y `textos_en`) y **misiones** (`data/heroquest_NN_es` y `heroquest_NN_en`) en ficheros separados del juego, para poder **traducirlos y personalizarlos sin modificar el juego**: textos con longitud variable (sin relleno; el juego recalcula anchos y centrados), un fichero por misión y un índice. Ver `docs/ZX_DATOS_QL.md`.
 - Las versiones retocadas o traducidas viven en `asset/graficos_ql/`, `asset/textos_ql/` y `asset/misiones_ql/`, que ninguna herramienta de extracción sobrescribe.
 
 ## Vista isométrica y plano (paso 2)
@@ -68,3 +68,10 @@ Rutinas «no necesarias», decisiones de diseño y mejoras propias retiradas (y 
 - **Reproducción de volcados en vez de portar el canal de efectos**: ver `docs/ZX_SONIDO.md`. Equivale al original (se comprueba fotograma a fotograma con los `.psg`), ocupa 1,2 KB y no añade código de motor. Si algún día hiciera falta portar el canal de efectos (para mezclarlo con la música, que el original no hace), el código está en `0xDFC8`-`0xE267`.
 - **El ruido de los efectos sí se convierte a 750 kHz**; el de la música no (queda como estaba): revisar si la música suena más grave de lo debido en los golpes de ruido.
 - **`Vars.sonido_pend`** es la variable `0x727D`: el paso y la puerta dejan el efecto pendiente y el bucle del turno lo toca.
+
+## Código sin uso (NO_COMP_UNUSED)
+
+- `cursor_cell` eliminada (fórmula: columna `(X-12)/8`, fila `(Y-2)/8`).
+- `#define NO_COMP_UNUSED` (en `src/platform.h`) deja sin compilar `mus_fade`, `mus_stop`, `mus_playing`, `mus_mark` y `mus_fx_suena`: ningún código del juego las llama. Quitar el `#define` para recuperarlas.
+- Eliminadas `data_aventura_base`, `data_mision_precargadas` y `data_retratos_en_memoria`: eran consultas que no usaba nadie (la precarga de misiones y de retratos se decide dentro de `data.c`).
+- `main` termina con `plat_exit()` (en QL, sin el «Press a key to exit» del runtime de c68).

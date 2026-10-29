@@ -18,10 +18,10 @@ for l in open('build/oraculo_turno.txt'):
     if keep: out.append(l)
 open('build/ttest/oraculo_turno_txt', 'w').write(''.join(out))
 PY
-cp data/sprites_bin data/escenario_bin data/vista_bin data/baldosas_bin data/marca_activo_bin data/mision_*_bin $D/
+cp data/sprites_bin data/escenario_bin data/vista_bin data/baldosas_bin data/marca_activo_bin data/heroquest_[0-9]* $D/
 IMG=$D/ttest.img
 qltools $IMG -fdd TTEST > /dev/null
-qltools $IMG -W $D/boot $D/ttest $D/oraculo_turno_txt $D/sprites_bin $D/escenario_bin $D/vista_bin $D/baldosas_bin $D/marca_activo_bin $D/mision_*_bin > /dev/null || exit 1
+qltools $IMG -W $D/boot $D/ttest $D/oraculo_turno_txt $D/sprites_bin $D/escenario_bin $D/vista_bin $D/baldosas_bin $D/marca_activo_bin $D/heroquest_[0-9]* > /dev/null || exit 1
 qltools $IMG -x ttest 60000 > /dev/null
 sed "s|build/heroquest.img|$IMG|" tmp/sqlux_hq_rapido.ini > $D/sqlux.ini
 tmp/sQLux/build/sqlux -f $D/sqlux.ini -w 1x > $D/sqlux.log 2>&1 &

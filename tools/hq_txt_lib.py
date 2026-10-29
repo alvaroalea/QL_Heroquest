@@ -27,7 +27,13 @@ DIR = {
         panel=(('PANEL_EFECTOS', 0x9761, 7), ('PANEL_OBJETOS', 0x97A8, 5), ('PANEL_ARMAS', 0x97F7, 7), ('PANEL_ARMADURAS', 0x9846, 4), ('PANEL_HECHIZOS_B', 0x986E, 6), ('PANEL_HECHIZOS_C', 0x98B7, 6)),
         pociones=(0xAEF7, 4, 0xAF1F, 31, 0xAEE3, 5), nombres_menu=0x6870, handler_max=0xB580),
 }
-D = DIR[VERSION]
+# La ampliacion Return of the Witch Lord (HQ_JUEGO=witchlord) tiene el mismo motor con el codigo desplazado; solo se analizan sus misiones: mis_tabla = tabla de punteros de
+# las misiones (overlay, org 0x5B00), n_mis = numero de misiones, nombres_menu = guion de los nombres, titulo = guion del titulo del menu (subtitulo en la segunda linea de texto)
+DIR['wl_es'] = dict(mis_tabla=0x65CB, n_mis=10, nombres_menu=0x6832, titulo=0x65DF, monstruos=(0xB0D8, 16))
+DIR['wl_en'] = dict(mis_tabla=0x65CC, n_mis=10, nombres_menu=0x6802, titulo=0x65E0, monstruos=(0xB166, 16))
+DIR['es'].update(mis_tabla=0x6637, n_mis=14); DIR['en'].update(mis_tabla=0x6642, n_mis=14)
+JUEGO = m.JUEGO
+D = DIR[VERSION if JUEGO == 'hq' else 'wl_' + VERSION]
 def distintos(a, b):
     """True si dos ficheros editables difieren (se ignoran las lineas de comentario '#', que cambian al regenerar el original)"""
     def cuerpo(r): return [l for l in open(r, encoding='utf-8').read().split('\n') if not l.startswith('#')]

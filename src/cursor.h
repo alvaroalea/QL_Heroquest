@@ -9,7 +9,6 @@ extern int cur_x, cur_y;                 /* posicion del cursor (AA69 y AA6A del
 
 void cursor_init(const u8 *sprites);     /* centro de la vista; sprites = sprites_bin (el cursor es el grafico 66) */
 void cursor_move(u16 keys);              /* un fotograma de movimiento con las teclas pulsadas (K_*); acelera tras 6 fotogramas */
-void cursor_cell(int *col, int *row);    /* casilla bajo el cursor: columna (X-12)/8, fila (Y-2)/8 */
 int  cursor_dibujado(void);              /* 1 si el cursor esta dibujado ahora mismo en pantalla */
 void cursor_draw(void);                  /* guarda el fondo y dibuja el cursor */
 void cursor_erase(void);                 /* devuelve el fondo guardado (hacerlo antes de dibujar otra cosa debajo) */

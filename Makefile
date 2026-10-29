@@ -14,13 +14,14 @@ INC      = -Isrc -Ibuild/datos
 QLFLAGS  = -DQL_ASM                   # -DQL_ASM usa gfx_asm.asm; vacio = solo C (para comparar)
 QCC      = qcc
 DISK     = build/heroquest.img
+WIN      = build/heroquest.win
 # Los datos de data/ se regeneran (tools/hq_ql_datos.sh) cuando cambia cualquier fichero de asset/ que los alimenta o una herramienta de tools/
 ASSETS   = $(shell find asset/graficos asset/graficos_ql asset/textos asset/textos_ql asset/misiones asset/misiones_ql asset/musica -type f 2>/dev/null) $(wildcard tools/hq_*.py tools/hq_ql_datos.sh)
 STAMP    = build/datos/.datos
 SQLUX    = tmp/sQLux/build/sqlux
 
-.PHONY: oraculo all data ql img host test run clean c68_check
-all: img
+.PHONY: oraculo all data ql img win host test run clean c68_check
+all: img win
 
 data: $(STAMP)
 $(STAMP): $(ASSETS)
@@ -46,10 +47,15 @@ build/host/hq: $(HOSTSRC) src/*.h build/datos/textos_ids.h
 	gcc -std=c89 -pedantic -Wall -Wextra -Wno-unused-parameter -DHOST $(INC) -o build/host/hq $(HOSTSRC)
 
 img: $(DISK)
+
+win: $(WIN)
+$(WIN): build/heroquest $(STAMP) data/boot tools/ql_win.sh
+	tools/ql_win.sh
+
 $(DISK): build/heroquest $(STAMP) data/boot
 	@rm -f $(DISK)
 	qltools $(DISK) -fdd HEROQUEST
-	qltools $(DISK) -W build/heroquest data/boot data/*_bin data/*_scr > /dev/null
+	qltools $(DISK) -W build/heroquest data/boot data/heroquest_dat data/fonts_dat data/*_[0-9][0-9]_es data/*_[0-9][0-9]_en data/*_es_idx data/*_en_idx data/textos_es data/textos_en data/*_scr > /dev/null
 	qltools $(DISK) -x heroquest 40000 > /dev/null
 	@qltools $(DISK) -s
 

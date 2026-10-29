@@ -34,6 +34,7 @@ static u8 *leer_fichero(const char *name, long *n)
     return b;
 }
 
+static u8 *idx_aventura;                         /* heroquest_es_idx: la tabla de tipos de monstruo */
 static u8 *cargar(const char *nombre)
 {
     char path[200];
@@ -131,6 +132,7 @@ int main(int argc, char **argv)
     txt = leer_fichero(fn, &n);
     if (!txt) { fprintf(out, "no se puede leer %s (hay que ejecutar tools/hq_oraculo_turno.py)\n", fn); return 2; }
     spr = cargar("sprites_bin"); esc = cargar("escenario_bin"); vis = cargar("vista_bin"); bal = cargar("baldosas_bin"); mar = cargar("marca_activo_bin");
+    idx_aventura = cargar("heroquest_es_idx");
     if (!vista_datos(spr, esc, vis, bal, mar)) { fprintf(out, "vista_datos rechaza los ficheros (error %d)\n", vista_error); return 2; }
     gfx_init();
     memset(pr, 1, 4);
@@ -145,11 +147,13 @@ int main(int argc, char **argv)
             esclic = strstr(ln, "CLIC") != NULL;
             if (esclic) sscanf(strchr(ln, '|') + 1, "%d %d %d %d %7s", &pm, &rep, &cx, &cy, tipo);
             else sscanf(strchr(ln, '|') + 1, "%d %d %d %7s", &pm, &rep, &d, tipo);
-            sprintf(nm, "%smision_%02d_es_bin", ddir, m);
+            sprintf(nm, "%sheroquest_%02d_es", ddir, m);
             dm = leer_fichero(nm, &n);
             if (!dm) { fprintf(out, "no se puede leer %s\n", nm); return 2; }
             pers_boot(&p);
             if (!partida_cargar(&p, m, dm, n, pr)) { fprintf(out, "mision rechazada\n"); return 2; }
+            partida_tipos(&p, data_tipos(idx_aventura));      /* nombres, retratos, iconos y sprites de los tipos de monstruo de la aventura */
+            partida_estadisticas(&p, data_estadisticas(idx_aventura));
             free(dm);
             for (i = 0; i < 4; i++) {
                 p.pers[i].col = (u8)pos[2 * i]; p.pers[i].fila = (u8)pos[2 * i + 1];

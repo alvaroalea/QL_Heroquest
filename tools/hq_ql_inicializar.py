@@ -19,7 +19,7 @@ for orig, dest, ext in ROOTS:
     ORIG = os.path.join(ROOT, orig); DEST = os.path.join(ROOT, dest)
     for ruta, dirs, ficheros in os.walk(ORIG):
         for f in sorted(ficheros):
-            if not f.endswith(ext) or (orig == 'asset/misiones' and not f.startswith('mision')) or (orig == 'asset/textos' and not re.match(r'textos(\.(es|en))?\.txt$', f)): continue
+            if not f.endswith(ext) or (orig == 'asset/misiones' and not f.startswith(('mision', 'witchlord'))) or (orig == 'asset/textos' and not re.match(r'textos(\.(es|en))?\.txt$', f)): continue
             rel = os.path.relpath(os.path.join(ruta, f), ORIG); d = os.path.join(DEST, rel)
             if not os.path.exists(d) and f.endswith('.es.txt'): d = os.path.join(DEST, os.path.dirname(rel), f[:-7] + '.txt')      # nombre antiguo (sin idioma) de la version espanola
             if os.path.exists(d):

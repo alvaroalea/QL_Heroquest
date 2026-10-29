@@ -40,6 +40,9 @@ extern void (*combate_punto)(int x, int y);               /* si no es NULL, se l
 int  combate_alcance(Partida *p, int pers, u8 *plano);      /* 0x7462: ALC_*; plano = buffer de 256 x 176 puntos de 1 bit donde se dibuja el plano con marcas y la linea de vista */
 int  combate_linea(const Partida *p, u8 *plano, int col1, int fila1, int col2, int fila2);   /* 0x7E7E: 1 si la linea entre dos casillas del plano choca con algo */
 
+/* ---- la ampliacion Return of the Witch Lord */
+int  combate_arma_rota(Partida *p, int pers);               /* 0x732A: atacar a un monstruo con el bit 6 de +6 rompe el arma y el objeto en uso; devuelve 1 si se ha roto algo */
+
 /* ---- tiradas */
 void combate_ataque(Partida *p, int pers, Salida *o);       /* 0x99A2: el heroe ataca al monstruo objetivo: golpes, escudos y, si hay mas golpes, muere */
 int  combate_defensa(Partida *p, int heroe, int monstruo, Salida *o);   /* 0x996B y 0x9B04: el monstruo (1 a 25) ataca al heroe; devuelve los puntos de cuerpo que pierde */

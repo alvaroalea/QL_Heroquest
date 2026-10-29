@@ -340,10 +340,14 @@ static void start_(int song)
     mix = 0x3F;
 }
 
+#ifndef NO_COMP_UNUSED
 void mus_fade(void) { fade_n = 2; fade_v = 0x0F; }   /* comando 3: DD8B = 2 (cuenta), DD8C = 0x0F (volumen maximo) */
+#endif
 
 static void stop_(void);
+#ifndef NO_COMP_UNUSED
 void mus_stop(void) { lock++; stop_(); lock--; }
+#endif
 
 static void stop_(void)                            /* D4ED */
 {
@@ -404,8 +408,10 @@ void mus_mute(int on)
     if (on) { qs_write(8, 0); qs_write(9, 0); qs_write(10, 0); }
 }
 
+#ifndef NO_COMP_UNUSED
 int mus_playing(void) { return md && !stopped; }
 int mus_mark(void) { return mark; }
+#endif
 
 void mus_frame(void)
 {
@@ -472,5 +478,7 @@ static void fx_frame(void)
 
 void mus_efectos_activar(int on) { lock++; fx_on = on; if (!on && fx_p) { fx_p = 0; fx_silencio(); } lock--; }
 int mus_efectos_activos(void) { return fx_on; }
+#ifndef NO_COMP_UNUSED
 int mus_fx_suena(void) { return fx_p != 0; }
+#endif
 void mus_fx_fotograma(void) { fx_frame(); }       /* pruebas */

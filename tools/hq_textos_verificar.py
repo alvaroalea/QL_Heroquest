@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Lee data/textos_bin y lo compara con los textos originales de la memoria del juego (solo tiene sentido si
+"""Lee build/datos/textos_es_bin y lo compara con los textos originales de la memoria del juego (solo tiene sentido si
 se empaqueto desde asset/textos/textos.txt sin modificar). Informa de las diferencias."""
 import sys, os, struct
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hq_txt_lib as T
 ROOT = T.ROOT
 def leer():
-    d = open(os.path.join(ROOT, 'data/textos_bin'), 'rb').read()
+    d = open(os.path.join(ROOT, 'build/datos/textos_es_bin'), 'rb').read()
     assert d[:4] == b'HQTX'; n = struct.unpack('>H', d[6:8])[0]; out = []
     for i in range(n):
         off, tipo, al, cant = struct.unpack('>LBBH', d[8 + 8 * i:16 + 8 * i]); out.append((off, tipo, al, cant))

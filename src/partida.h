@@ -13,7 +13,7 @@
 #define MAP_N 494                 /* MAP_W * MAP_H */
 #define MAP_P 512                 /* cada capa ocupa 0x200 bytes en el original (a partir de 494 es relleno a cero): la vista lee algunas casillas pasada la 494 */
 #define N_SALAS 64
-#define N_MONS 25
+#define N_MONS 32
 #define N_PERS 5                  /* 4 heroes y el quinto personaje (Sir Ragnar en la mision 1) */
 #define N_IND 86
 #define MAZO_N 25
@@ -48,6 +48,7 @@ typedef struct {
     u8  b7;                       /* (+7) dos nibbles que muestra el panel */
     u8  tipo;                     /* (+8) nombre: 0 duende, 1 orco, 2 fimir, 3 guerrero, 4 esqueleto, 5 zombi, 6 momia, 7 hechicero, 8 Ulag, 9 Grak, 10 Balur, 11 gran brujo */
     u8  estad;                    /* (+9) indice en la tabla de atributos (movimiento, ataque, defensa) */
+    u8  tramo;                    /* (no esta en el original) tramo de la ruta de la mision (Partida.ruta) por el que va un monstruo errante (0x9D04) */
 } Mons;
 
 /* Variables del juego que borra INICIAR_MISION (0xA983 a 0xA9D6). Se anaden aqui segun se vayan portando. */
@@ -78,6 +79,8 @@ typedef struct {
     u16 casilla_cursor;           /* 0xA9C1 casilla del mapa bajo el cursor (capa C) */
     u8 cont_evento;               /* 0xA9AE heroes que han salido en la mision 1 (el primero cobra) */
     u8 cont_tesoro;               /* 0xA9AF cuenta de los tesoros especiales de la mision 3 (y de los viajes por oro) */
+    u8 cont_llave;                /* llaves de Agrain encontradas (sala especial 24 de la ampliacion; el original lo guarda en su codigo, 0x8E96) */
+    u8 epilogo;                   /* 0x9837 una muerte con la rutina MUERTE_EPILOGO pide mostrar el epilogo al acabar el turno */
     u8 mask_heroes;               /* 0xA9B2 heroes que ya han recuperado el equipo en la mision 5 */
     u8 flag_b4;                   /* 0xA9B4 el aviso de la mision 11 ya se ha dado */
     u8 sonido_pend;               /* 0x727D efecto de sonido pendiente (efecto + 1): 1 paso, 9 puerta; lo toca el bucle del turno */
@@ -101,8 +104,32 @@ typedef struct {
     u8 pers_muerto;               /* 0xA9BB */
 } Vars;
 
+/* Rutina que se ejecuta al morir un monstruo segun su estadistica (Mons.estad; tabla 0xA76D del original, un puntero por entrada). La mision elige cual
+   para cada estadistica con lineas 'muerte' (docs/ZX_DATOS_QL.md); las que no nombra usan la normal. */
+#define N_ESTAD        20
+#define N_MUERTE_CEL   32
+#define MUERTE_NORMAL  0          /* 0x96CD: la recompensa de su tipo */
+#define MUERTE_SALIDA  1          /* 0x9813: borra casillas (nb) y pone la escalera de salida (na, codigos 0x38 a 0x3B) en las celdas de muerte_cel[ini..] */
+#define MUERTE_EPILOGO 2          /* 0x9831: pide el epilogo de la aventura (Vars.epilogo) */
+typedef struct { u8 tipo, nb, na, ini; } Muerte;
+
+/* Estadisticas de monstruo (Mons.estad; tabla 0xAA8C de Hero Quest y 0xA76D de la ampliacion), de la tabla [estadisticas] de <aventura>.<idioma>.txt */
+typedef struct { u8 mov, ataque, defensa; u16 oro; u8 quien, objeto, mensaje, jefe; } Estadistica;
+/* mov: casillas que anda (el camino hasta un heroe no puede ser mas largo); ataque y defensa: dados; oro: monedas al morir y quien las recibe (0 nadie, 1 el que lo mata, 2 los cuatro);
+   objeto: bit de +0x0D que da (0 ninguno; 3 = baraja de orco); mensaje: 0 ninguno, 1 BANE DE ORC, 2 ESTRELLA DEL OESTE; jefe: 1 = solo la espada espiritual le hace dano */
+
+/* Tipos de monstruo (Mons.tipo) de la aventura: su nombre y los graficos que lo representan, de la tabla [monstruos] de <aventura>.<idioma>.txt */
+#define N_TIPOS        16
+#define N_TELEPORTE    6                          /* destinos de la sala de teletransporte (EV_TELEPORTE) */
+#define N_RUTA         8                          /* tramos de la ruta de los monstruos errantes */
+#define TIPO_NORMAL    0                          /* clase de un tipo de monstruo: sin comportamiento propio */
+#define TIPO_ORCO      1                          /* da el segundo ataque de la vara de orco (letra V en [monstruos]) */
+#define TIPO_MUERTO    2                          /* muerto viviente: 4 dados de la espada espiritual y muere con el agua santa (letra M) */
+typedef struct { u8 retrato, icono, sprite, n, clase; u8 nombre[12]; } TipoMons;     /* retrato de combate, baldosa del plano, sprite de la vista, nombre (n caracteres del juego) y clase */
+
 typedef struct {
-    u8   mision;                  /* 0xA981 */
+    u8   mision;                  /* 0xA981 numero de la mision en su aventura (solo informativo: el comportamiento lo dan las banderas de ev) */
+    u16  ev;                      /* banderas de eventos de la mision (EV_*), de la cabecera del fichero de la mision */
     u8   capa_a[MAP_P];           /* habitacion (bits 0-5), bit 6 visible en el plano, bit 7 visible en 3D */
     u8   capa_b[MAP_P];           /* paredes y puertas */
     u8   capa_c[MAP_P];           /* objetos (0x30...) y numero de monstruo + 1 */
@@ -111,6 +138,14 @@ typedef struct {
     Mons mons[N_MONS];
     Pers pers[N_PERS];
     Vars v;
+    Estadistica estadisticas[N_ESTAD];   /* las de la aventura (partida_estadisticas) */
+    TipoMons tipos[N_TIPOS];      /* los de la aventura (partida_tipos), no los borra la carga de la mision */
+    u8   ruta_pasos, ruta_n;      /* ruta de los monstruos errantes (linea errante de la mision): pasos por ronda y numero de tramos (0 = no hay) */
+    u8   ruta[N_RUTA][2];         /* tramos: eje y sentido (bit 0: 0 columna, 1 fila; bit 1: 1 = suma 1, 0 = resta 1) y la coordenada con la que acaba */
+    u8   tp_sala, tp_n;           /* EV_TELEPORTE (linea teleporte de la mision): sala que se abandona y numero de destinos */
+    u8   tp[N_TELEPORTE][5];      /* destinos: sala, columna, fila y columna y fila de la casilla de la puerta (ultima puerta cruzada) */
+    Muerte muerte[N_ESTAD];       /* rutina de muerte de cada estadistica de monstruo */
+    u8   muerte_cel[N_MUERTE_CEL][2];   /* (columna, fila) de las casillas de las rutinas MUERTE_SALIDA */
     u8   salidos;                 /* bit i = el heroe i ha salido por una escalera (el original vuelve a poner a 0xFF su marca 0x8FE4 + i) */
     u8   equipo_ocu[15];          /* 0xA2B2: equipo que se quita a los heroes en la mision 5 (0: +D,+E,+F; 1: +D,+E,+F; 2: +B a +F; 3: +B a +E) */
 } Partida;
@@ -145,9 +180,28 @@ void mazo_barajar_azar(void);     /* el mismo barajado con el generador de dados
 int  mazo_robar(void);            /* 0x9523: primera carta (se desplazan las demas) */
 void mazo_devolver(int carta);    /* 0x9588: la deja al final */
 
+/* ---- banderas de eventos de las misiones (docs/ZX_MISIONES.md). El numero de bit es el de la mision de Hero Quest cuyo comportamiento repiten; en el fichero de
+   la mision (linea 'eventos' del texto) cualquier aventura puede activarlas, sea cual sea su numero. */
+#define EV_SALE_PRIMERO (1 << 0)   /* mision 0: solo el primer heroe que sale por la escalera cobra 100 monedas */
+#define EV_RAGNAR       (1 << 1)   /* mision 1: quinto personaje (Sir Ragnar) en la casilla (6, 1), se encuentra en la sala 0x16, recompensa al salir y la mision sigue mientras viva */
+#define EV_ORO_MAGNUS   (1 << 3)   /* mision 3: el oro de Magnus (200 monedas al salir con el, y se puede volver a por mas) */
+#define EV_ROCA         (1 << 4)   /* mision 4: cae una roca que cierra la casilla (25, 7) y abrir la puerta de la columna 5 (filas 3 y 4) deja ver al monstruo 1 */
+#define EV_SIN_EQUIPO   (1 << 5)   /* mision 5: los heroes empiezan sin equipo ni hechizos y lo recuperan al entrar en la sala 0x1D */
+#define EV_SALE_COBRA   (1 << 6)   /* mision 6: cada heroe que sale por la escalera cobra 100 monedas */
+#define EV_SIN_FUEGO    (1 << 7)   /* mision 7: el elfo y el hechicero pierden los hechizos de fuego */
+#define EV_CASTILLO     (1 << 9)   /* mision 9: 5000 monedas en la sala 0x18, teletransportes al azar, sin ver el mapa y fantasma al buscar tesoros */
+#define EV_DESPIERTA    (1 << 12)  /* ampliacion, mision 1: pisar la columna 5 (filas 3 y 4) hace que el monstruo 1 cobre vida (como EV_ROCA, sin la roca) */
+#define EV_TELEPORTE    (1 << 13)  /* ampliacion, mision 1: al salir de la sala de la linea teleporte el heroe va a uno de sus destinos al azar */
+#define EV_ROCA_DER     (1 << 14)  /* ampliacion, mision 7: la roca de la trampa (codigo 0x34) cae en la casilla de la derecha del heroe: si hay un heroe pierde un punto, si no queda cerrada */
+#define EV_CIERRE       (1 << 11)  /* mision 11: la sala 0x1F se cierra al entrar y la trampa cierra la salida cuando los cuatro la han pisado */
+
 /* ---- cargar la mision */
-/* datos = contenido de mision_NN_bin (formato HQMS de docs/ZX_DATOS_QL.md); presentes[i] != 0 si el heroe i juega. Hace todo lo de
+/* datos = contenido de heroquest_NN (formato HQMS de docs/ZX_DATOS_QL.md); presentes[i] != 0 si el heroe i juega. Hace todo lo de
    INICIAR_MISION salvo mostrar el objetivo y barajar el mazo (game.c lo baraja con mazo_barajar_azar). 0 si el fichero no es valido. */
 int  partida_cargar(Partida *p, int mision, const u8 *datos, long len, const u8 *presentes);
+void partida_estadisticas(Partida *p, const u8 *tab);   /* copia la tabla de estadisticas de monstruo (data_estadisticas(): n y n entradas de 9 bytes); sin tabla, todo a cero */
+const Estadistica *partida_estadistica(const Partida *p, int estad);   /* la estadistica, o la ultima si se sale de la tabla */
+void partida_tipos(Partida *p, const u8 *tab);    /* copia la tabla de tipos de monstruo (data_tipos(): n y n entradas de 16 bytes); sin tabla, todo a cero */
+const TipoMons *partida_tipo(const Partida *p, int tipo);   /* el tipo de monstruo, o el ultimo si se sale de la tabla */
 int  casilla_indice(int col, int fila);   /* 0xA0D4: indice de una casilla en las capas */
 #endif

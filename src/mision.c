@@ -61,6 +61,46 @@ static void esp_trampa(Partida *p, int pers, int idx, Salida *o, int oro_antes, 
     vent(o, tx_ok);
 }
 
+/* Salas especiales de Return of the Witch Lord (tabla 0x8D73 de la ampliacion, rutinas 0x8D89-0x8E94): en las misiones de cualquier aventura son los valores 19 a 29 del
+   indicador, para que convivan con los 1 a 18 de Hero Quest. n = 1 a 11 es el numero de la tabla de la ampliacion. */
+static void especial_wl(Partida *p, int pers, int idx, int n, Salida *o)
+{
+    static const u16 cofre[11] = { 200, 300, 100, 0, 0, 100, 400, 350, 250, 500, 0 };
+    static const int ventana[11] = { TX_VENT_B6EF, TX_VENT_B73F, TX_VENT_B805, TX_VENT_B86E, TX_VENT_B8B4, TX_VENT_B8EB, TX_VENT_B78F, TX_VENT_B767, TX_VENT_B717,
+                                     TX_VENT_B7B9, TX_VENT_B842 };
+    Pers *r = &p->pers[pers];
+    switch (n) {
+    case 4:                                                      /* 0x8E1A: cofre con trampa explosiva: se desarma, pero la ventana ya hiere */
+        p->ind[idx] = 0xFF;
+        if (idx + 43 < N_IND) p->ind[idx + 43] = 0xFF;
+        vent(o, ventana[3]);
+        muere_o_pierde(p, pers, o);
+        break;
+    case 5:                                                      /* 0x8E56: indicador de trampa: se desactiva y el cofre de la sala queda usado */
+        p->ind[idx] = 0xFF;
+        if (idx >= 43) p->ind[idx - 43] = 0xFF;
+        vent(o, ventana[4]);
+        break;
+    case 6:                                                      /* 0x8E68: la llave de Agrain (no se marca hasta la cuarta) */
+        vent(o, ventana[5]);
+        oro(p, pers, 100);
+        msg(o, MSG_ORO_PANEL, pers, 0);
+        r->armadura |= 0x40;
+        if (++p->v.cont_llave == 4) p->ind[idx] = 0xFF;
+        break;
+    case 11:                                                     /* 0x8DE4: dos pociones curativas */
+        p->ind[idx] = 0xFF;
+        r->efectos |= 12;
+        vent(o, ventana[10]);
+        break;
+    default:                                                     /* 0x8D89-0x8DCA: cofres de monedas; el 3 (0x8DD7) lleva ademas una pocion (0x8DFE) */
+        p->ind[idx] = 0xFF;
+        if (n == 3) { if (r->efectos & 4) r->efectos |= 8; else r->efectos |= 4; }
+        con_oro(p, pers, o, cofre[n - 1], ventana[n - 1]);
+        break;
+    }
+}
+
 void mision_especial(Partida *p, int pers, int idx, int valor, Salida *o)
 {
     Pers *r = &p->pers[pers];
@@ -126,7 +166,9 @@ void mision_especial(Partida *p, int pers, int idx, int valor, Salida *o)
         break;
     case 17: p->ind[idx] = 0xFF; r->objetos |= 0x10; vent(o, TX_VENT_BF99); break;              /* 0x91E4 */
     case 18: p->ind[idx] = 0xFF; con_oro(p, pers, o, 200, TX_VENT_C01F); break;                  /* 0x9173 */
-    default: break;
+    default:
+        if (valor >= ESP_WL_1 && valor <= ESP_WL_11) especial_wl(p, pers, idx, valor - ESP_WL_1 + 1, o);
+        break;
     }
 }
 
@@ -135,8 +177,7 @@ void mision_evento(Partida *p, int pers, Salida *o)
 {
     Pers *r = &p->pers[pers];
     int e;
-    switch (p->mision) {
-    case 5:                                                      /* 0x7105: el heroe recupera su equipo */
+    if (p->ev & EV_SIN_EQUIPO) {                                 /* 0x7105: el heroe recupera su equipo */
         if (!p->v.evento_mision) return;
         p->v.evento_mision = 0;
         e = 1 << pers;
@@ -144,20 +185,16 @@ void mision_evento(Partida *p, int pers, Salida *o)
         p->v.mask_heroes |= (u8)e;
         if (pers < 4) pers_restaurar_equipo(p, pers);
         vent(o, TX_VENT_C0BD);
-        break;
-    case 9:                                                      /* 0x70C8: cargar con 5000 monedas */
+    } else if (p->ev & EV_CASTILLO) {                            /* 0x70C8: cargar con 5000 monedas */
         if (!p->v.evento_mision) return;
         p->v.evento_mision = 0;
         if ((r->armadura & 0x20) || (r->armadura & 0x10)) return;
         if (pregunta(o, TX_VENT_B0F1)) r->armadura |= 0x20;
         r->armadura |= 0x10;
-        break;
-    case 11:                                                     /* 0x70B0: la sala se cierra */
+    } else if (p->ev & EV_CIERRE) {                              /* 0x70B0: la sala se cierra */
         if (!p->v.evento_mision || p->v.flag_b4) return;
         p->v.flag_b4 = 1;
         vent(o, TX_VENT_C100);
-        break;
-    default: break;
     }
 }
 
@@ -174,28 +211,22 @@ void mision_salida(Partida *p, int pers, Salida *o)
     static const u16 reparto[5] = { 0, 200, 100, 66, 50 };
     Pers *r = &p->pers[pers];
     int i, n;
-    switch (p->mision) {
-    case 0:                                                      /* 0x8EBB: solo el primero que sale cobra */
-        if (p->v.cont_evento++ != 0) return;
+    if ((p->ev & EV_SALE_PRIMERO) && p->v.cont_evento++ == 0)    /* 0x8EBB: solo el primero que sale cobra */
         salida_oro100(p, pers, o);
-        break;
-    case 6: salida_oro100(p, pers, o); break;                    /* 0x8EC4 */
-    case 1:                                                      /* 0x8ED4: sale Ragnar */
-        if (pers != 4) return;
+    if (p->ev & EV_SALE_COBRA) salida_oro100(p, pers, o);        /* 0x8EC4 */
+    if ((p->ev & EV_RAGNAR) && pers == 4) {                      /* 0x8ED4: sale Ragnar */
         if (pregunta(o, TX_VENT_B0B6)) {                         /* dividir la recompensa entre los que se salvan */
             n = 0;
             for (i = 0; i < 4; i++) if (p->pers[i].estado || (p->salidos & (1 << i))) n++;
             for (i = 3; i >= 0; i--) if (p->pers[i].estado || (p->salidos & (1 << i))) oro(p, i, reparto[n]);
         } else oro(p, p->v.heroe_evento, 200);
-        break;
-    case 3:                                                      /* 0x8F5D: el oro de Magnus */
-        if (!(r->armadura & 0x40)) return;
+    }
+    if ((p->ev & EV_ORO_MAGNUS) && (r->armadura & 0x40)) {       /* 0x8F5D: el oro de Magnus */
         oro(p, pers, 200);
         n = pregunta(o, TX_VENT_B058);
         msg(o, MSG_ORO_PANEL, pers, 0);
         vent(o, n ? TX_VENT_BF16 : TX_VENT_BEDC);
-        if (p->v.cont_tesoro == 3) return;
-        if (pregunta(o, TX_VENT_B084)) {                         /* vuelve a la mazmorra por mas oro */
+        if (p->v.cont_tesoro != 3 && pregunta(o, TX_VENT_B084)) {   /* vuelve a la mazmorra por mas oro */
             p->salidos &= (u8)~(1 << pers);
             r->estado = 0xFF;
             p->v.turno_acabado = 0;
@@ -203,10 +234,6 @@ void mision_salida(Partida *p, int pers, Salida *o)
             r->armadura &= (u8)~0x40;
             p->v.redibujar = 1;
         }
-        break;
-    case 9:                                                      /* 0x8F4E: salen todos */
-        if (p->v.muertos == 0x0F) vent(o, TX_VENT_BBDE);
-        break;
-    default: break;
     }
+    if ((p->ev & EV_CASTILLO) && p->v.muertos == 0x0F) vent(o, TX_VENT_BBDE);   /* 0x8F4E: salen todos */
 }

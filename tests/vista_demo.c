@@ -27,11 +27,12 @@ int main(int argc, char **argv)
     pk_marco = cargar("marco_bin");
     spr = cargar("sprites_bin"); esc = cargar("escenario_bin");
     if (!vista_datos(spr, esc, cargar("vista_bin"), cargar("baldosas_bin"), cargar("marca_activo_bin"))) { printf("vista_datos falla\n"); return 2; }
-    sprintf(nm, "mision_%02d_es_bin", atoi(argv[1]));
+    sprintf(nm, "heroquest_%02d_es", atoi(argv[1]));
     dm = cargar(nm); n = 0;
     { FILE *f; char path[80]; sprintf(path, "%s%s", plat_data_dir(), nm); f = fopen(path, "rb"); fseek(f, 0, 2); n = ftell(f); fclose(f); }
     pers_boot(p);
     if (!partida_cargar(p, atoi(argv[1]), dm, n, pr)) { printf("mision rechazada\n"); return 2; }
+    { u8 *ix = cargar("heroquest_es_idx"); partida_tipos(p, data_tipos(ix)); partida_estadisticas(p, data_estadisticas(ix)); }
     p->pers[0].col = (u8)atoi(argv[2]); p->pers[0].fila = (u8)atoi(argv[3]);
     gfx_clear();
     if (pack_get(pk_marco, 0, &g)) gfx_blit(&g, 0, (256 - g.h) / 2);

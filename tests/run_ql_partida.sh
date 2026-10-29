@@ -25,10 +25,10 @@ for l in open('tests/oraculo_partida.txt'):
     out.append(l)
 open('build/ptest/oraculo_partida_txt', 'w').write(''.join(out))
 PY
-cp data/mision_*_bin $D/
+cp data/heroquest_[0-9]* $D/
 IMG=$D/ptest.img
 qltools $IMG -fdd PTEST > /dev/null
-qltools $IMG -W $D/boot $D/ptest $D/oraculo_partida_txt $D/mision_*_bin > /dev/null
+qltools $IMG -W $D/boot $D/ptest $D/oraculo_partida_txt $D/heroquest_[0-9]* > /dev/null
 qltools $IMG -x ptest 40000 > /dev/null
 sed "s|build/heroquest.img|$IMG|" tmp/sqlux_hq_rapido.ini > $D/sqlux.ini
 tmp/sQLux/build/sqlux -f $D/sqlux.ini -w 1x > $D/sqlux.log 2>&1 &

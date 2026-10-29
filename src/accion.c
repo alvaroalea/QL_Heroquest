@@ -187,7 +187,7 @@ void accion_buscar_tesoros(Partida *p, int pers, Salida *o)     /* 0x80A9 */
             if (--r->cuerpo == 0) { heroe_muere(p, pers); msg(o, MSG_MUERTE, pers, 0); }
             return;
         }
-        if (p->mision == 9) { msg(o, MSG_FANTASMA, 0, 0); return; }
+        if (p->ev & EV_CASTILLO) { msg(o, MSG_FANTASMA, 0, 0); return; }
         p->v.atacante = (u8)pers;                                /* un monstruo te sigue: aparece en una casilla libre de al lado */
         p->mons[0].hab = r->hab;
         for (k = 0; k < 4; k++) {
@@ -249,7 +249,7 @@ void accion_evento(Partida *p, int pers, Salida *o)             /* 0xA108 (sin 0
         perder_un_punto(p, pers, o, 1);
         return;
     }
-    if (p->mision == 11) {                                       /* mision 11: cuando los cuatro han pisado la trampa se cierra la salida */
+    if (p->ev & EV_CIERRE) {                                     /* mision 11: cuando los cuatro han pisado la trampa se cierra la salida */
         p->v.pers_muerto = (u8)pers;
         if (pers < 4) p->v.ausentes |= (u8)(1 << pers);        /* 0xA25A: aqui el mapa de ausentes cuenta los heroes que han pisado la trampa */
         if (p->v.ausentes != 0x0F) return;
@@ -264,7 +264,15 @@ void accion_evento(Partida *p, int pers, Salida *o)             /* 0xA108 (sin 0
     }
     msg(o, MSG_ROCA, 0, 0);
     p->v.redibujar = 1;
-    if (p->mision == 4) {                                        /* mision 4: cae una roca que cierra la casilla (25, 7) */
+    if (p->ev & EV_ROCA_DER) {                                   /* ampliacion (0x9F46): la roca cae en la casilla de la derecha del heroe */
+        int col = r->col + 1, cell = r->fila * MAP_W + col;
+        if (col >= MAP_W) return;
+        p->v.atacante = (u8)pers;
+        a = casilla_ocupada(p, col, r->fila, r->hab, (int *)0);
+        if (a == 1) roca_sobre_casilla(p, pers, cell, o); else p->capa_c[cell] = 0x31;
+        return;
+    }
+    if (p->ev & EV_ROCA) {                                       /* mision 4: cae una roca que cierra la casilla (25, 7) */
         p->capa_c[6 * MAP_W + 25] = 0;
         p->v.atacante = (u8)pers;
         a = casilla_ocupada(p, 25, 7, r->hab, (int *)0);

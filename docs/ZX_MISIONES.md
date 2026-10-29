@@ -2,6 +2,8 @@
 
 Análisis de los eventos de las misiones 5, 9 y 11 (`EVENTOS_MISION`, `0x70A1`), de las **salas especiales** del icono del ojo (`0x827A` y la tabla `0x82A2`, rutinas `0x9005`-`0x91F4`) y de lo que ocurre al **salir un héroe por la escalera** (`0x8E7B` y la tabla `0x8FE9`, rutinas `0x8EBB`-`0x8FD2`), y su port a `src/mision.c`. Verificación: `tools/hq_oraculo_mision.py` ejecuta las rutinas originales en el simulador Z80 y `tests/mision_test.c` compara héroes, monstruos, capas, indicadores, marcas de salida, variables y los mensajes, preguntas y ataques (`make test`: 6160 comprobaciones en 560 casos; `tests/run_ql_mision.sh` repite 4 casos con c68 en sQLux). El oráculo también ejecuta las búsquedas completas del ojo (`0x8079`, `0x80A9`), con lo que se comprueba la emboscada con su ataque.
 
+**Banderas de eventos.** Los números de misión de abajo no están en el código del port: `Partida.ev` (word de la cabecera del fichero de la misión, línea `eventos` del texto) tiene un bit por comportamiento (`EV_*` de `src/partida.h`, el bit es el número de la misión de Hero Quest). Las misiones de Hero Quest la llevan escrita en su texto (`eventos N`); cualquier aventura puede activar las que quiera. Ver `docs/ZX_DATOS_QL.md`.
+
 ## Final de la misión
 
 `PARTIDA` repite rondas mientras `MISION_CONTINUA` (`docs/ZX_PARTIDA.md`) y vuelve al menú: no hay pantalla de fin. Los héroes conservan en sus registros el oro (`+9`, `+10`) y el equipo (`+0x0E`, `+0x0F`), que son los que ve la tienda, y **solo siguen disponibles los que han salido vivos por la escalera** (las marcas `0x8FE4`-`0x8FE7` se ponen a cero al empezar y `0x8E7B` las vuelve a poner): un héroe muerto o que no sale se pierde para las siguientes misiones. El port lo repite en `game_run()` (`oro`, `armas` y `armadura` vuelven a `heroes[]` y `activo` = ha salido). Si el jugador aborta con Esc no se copia nada.
@@ -51,6 +53,8 @@ El indicador de una sala (`Partida.ind`: 0 a 42 tesoros, 43 a 85 trampas), si no
 | 16 | `0x91D1` | aparece el monstruo 2 (`BE6B`) y **ataca** (`PANEL_COMBATE`) |
 | 17 | `0x91E4` | objeto 4 (espada espiritual) y `BF99` |
 | 18 | `0x9173` | 200 monedas y `C01F` |
+
+Los valores **19 a 29** son las 11 salas de Return of the Witch Lord (`especial_wl()`, ver `docs/ZX_AMPLIACION.md`); así una aventura puede usar las de las dos.
 
 ## La emboscada ataca
 

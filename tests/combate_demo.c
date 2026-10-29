@@ -63,11 +63,12 @@ int main(int argc, char **argv)
     gfx_set_font(fnt_normal);
     spr = cargar("sprites_bin");
     if (!vista_datos(spr, cargar("escenario_bin"), cargar("vista_bin"), cargar("baldosas_bin"), cargar("marca_activo_bin"))) { printf("vista_datos falla\n"); return 2; }
-    sprintf(nm, "mision_%02d_es_bin", mision);
+    sprintf(nm, "heroquest_%02d_es", mision);
     dm = data_load(nm, &n);
     if (!dm) { printf("no se puede leer %s\n", nm); return 2; }
     pers_boot(p);
     if (!partida_cargar(p, mision, dm, n, pr)) { printf("mision rechazada\n"); return 2; }
+    { u8 *ix = cargar("heroquest_es_idx"); partida_tipos(p, data_tipos(ix)); partida_estadisticas(p, data_estadisticas(ix)); }
     ui_combate_iniciar();
     cursor_init(spr);
     for (i = 0; i < MAP_N; i++) if (p->capa_a[i] & 0x3F) p->capa_a[i] |= 0x40;

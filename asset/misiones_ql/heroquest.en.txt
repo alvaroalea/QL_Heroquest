@@ -1,0 +1,41 @@
+# Datos de la aventura (ampliacion Return of the Witch Lord, ZX 128K ingles) - generado por tools/hq_misiones_extraer.py
+# EDITAR LA COPIA de asset/misiones_ql/witchlord.en.txt (este fichero se regenera).
+# subtitulo: lo que sale bajo HEROQUEST en los menus (maximo 32 caracteres); las misiones son witchlord_NN.en.txt
+subtitulo THE ADVENTURE BEGIN
+
+[monstruos] un tipo por linea, el primero es el tipo 0: nombre (hasta 9 caracteres)|retrato de combate|baldosa del plano|sprite de la vista|clase: N normal, V orco (segundo ataque de la vara de orco), M muerto viviente (espada espiritual y agua santa) (los tipos son los de la columna tipo de [monstruos] de las misiones)
+GOBLIN|11|20|0|N
+ORC|4|21|1|V
+FIMIR|5|22|2|N
+WARRIOR|6|23|3|N
+SKELETON|7|24|4|M
+ZOMBIE|10|25|5|M
+MUMMY|8|26|6|M
+SORCERER|4|27|7|N
+ULAG|4|27|8|N
+GRAK|4|27|9|N
+BALUR|7|27|10|N
+WITCHLORD|7|27|11|N
+WITCHLORD|7|27|12|N
+
+[estadisticas] una por linea, la primera es la estadistica 0 (columna estadistica de [monstruos] de las misiones): movimiento (sin efecto en el original)|dados de ataque|dados de defensa|monedas al morir|a quien (0 nadie, 1 el que lo mata, 2 los cuatro)|bit de objeto (0 ninguno)|mensaje (0 ninguno, 1 BANE DE ORC, 2 ESTRELLA DEL OESTE)|jefe (1 = solo la espada espiritual le hace dano)
+10|2|1|0|0|0|0|0
+8|3|2|0|0|0|0|0
+6|3|3|0|0|0|0|0
+6|3|4|0|0|0|0|0
+6|2|2|0|0|0|0|0
+4|2|3|0|0|0|0|0
+4|3|4|0|0|0|0|0
+6|4|4|0|0|0|0|0
+10|4|5|100|1|0|0|0
+8|4|4|0|0|0|0|0
+8|2|5|150|2|0|0|0
+1|2|6|0|0|0|0|1
+10|5|6|0|0|0|0|1
+6|3|5|0|0|0|0|0
+10|2|1|10|1|0|0|0
+8|3|2|20|1|0|0|0
+6|3|3|30|1|0|0|0
+6|3|4|30|1|0|0|0
+6|3|4|30|1|3|1|0
+4|2|3|200|1|0|2|0

@@ -61,7 +61,8 @@ int monstruo_planear(Partida *p, int num)                        /* 0x9D6B */
     Mons *m = &p->mons[num - 1];
     int i, c;
     cam_n = p->v.camino_n;
-    if (!m->estado || (m->estado & 0x80) || !(m->cuerpo & 1)) return MON_NADA;
+    if (!m->estado || (m->estado & 0x80)) return MON_NADA;
+    if (!(m->cuerpo & 1)) return ((m->cuerpo & 0x80) && p->ruta_n) ? MON_ERRANTE : MON_NADA;   /* 0x9A44: sin vida, solo el errante con ruta actua */
     if (m->cuerpo & 4) {                                         /* dormido: despierta si el R de la tirada vale 5 (no la cara: el original mira A) */
         dado();
         if (dado_r() != 5) return MON_NADA;
@@ -89,4 +90,44 @@ void monstruo_paso(Partida *p, int num, int k)                   /* 0xA086 */
     c = m->fila * MAP_W + m->col;
     p->capa_c[c] = (u8)v;
     m->casilla = (u16)c;
+}
+
+/* ---------------------------------------------------------------- el monstruo errante (ampliacion) */
+void monstruo_errante_paso(Partida *p, int num)                  /* 0x9CA8-0x9D03 con la ruta como dato de la mision */
+{
+    Mons *m = &p->mons[num - 1];
+    int c = m->fila * MAP_W + m->col, eje, sig, v, dest;
+    if (!p->ruta_n) return;
+    if (m->tramo >= p->ruta_n) m->tramo = 0;
+    eje = p->ruta[m->tramo][0] & 1; sig = (p->ruta[m->tramo][0] & 2) ? 1 : -1; dest = p->ruta[m->tramo][1];
+    if (p->capa_c[c] == num) p->capa_c[c] = 0;
+    v = (eje ? m->fila : m->col) + sig;
+    if (v < 0) v = 0;
+    if (v >= (eje ? MAP_H : MAP_W)) v = (eje ? MAP_H : MAP_W) - 1;
+    if (eje) m->fila = (u8)v; else m->col = (u8)v;
+    if (sig > 0 ? v >= dest : v <= dest) m->tramo = (u8)((m->tramo + 1) % p->ruta_n);
+    c = m->fila * MAP_W + m->col;
+    m->casilla = (u16)c;
+    if (!p->capa_c[c]) p->capa_c[c] = (u8)num;
+}
+
+int monstruo_errante_golpe(Partida *p, int num, Salida *o)       /* 0x9D05-0x9D4F */
+{
+    const Mons *m = &p->mons[num - 1];
+    int i;
+    for (i = 0; i < 4; i++) {
+        Pers *r = &p->pers[i];
+        if (!r->estado || r->col != m->col || r->fila != m->fila) continue;
+        if (r->cuerpo <= 1) {
+            p->v.pers_muerto = (u8)i;
+            r->cuerpo = 0;
+            heroe_muere(p, i);
+            accion_mensaje(o, MSG_MUERTE, i, 0);
+        } else {
+            r->cuerpo--;
+            accion_mensaje(o, MSG_NIEBLA, 0, 0);
+        }
+        return 1;
+    }
+    return 0;
 }

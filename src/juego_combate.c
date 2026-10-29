@@ -14,23 +14,10 @@
 #include "vista.h"
 #include "textos_ids.h"
 
-static u8 *pk_retratos;
 static u8 plano_los[VISTA_ALTO * 32];                /* estatico: la pila de un programa del QL es pequena */
-
-void ui_combate_iniciar(void)
-{
-    if (!pk_retratos) pk_retratos = data_load("retratos_bin", 0);
-}
-
-void ui_combate_liberar(void)
-{
-    if (pk_retratos) free(pk_retratos);
-    pk_retratos = 0;
-}
 
 /* ---------------------------------------------------------------- la pantalla de combate */
 static const u8 retrato_heroe[5] = { 0, 1, 2, 3, 2 };                                   /* tabla 0x9ABB: barbaro, enano, elfo, hechicero y Ragnar (el del elfo) */
-static const u8 retrato_monstruo[13] = { 11, 4, 5, 6, 7, 10, 8, 4, 4, 4, 7, 7, 7 };       /* tabla 0x9ACA, por tipo (nombre) de monstruo */
 
 static void minifigura(int col, int idx)             /* 0xA3E1 y 0xA3F8: la figura sobre una caja blanca (el original la dibuja en negativo) */
 {
@@ -72,7 +59,7 @@ static void pantalla_combate(int heroe, int cuerpo, int mente, int tipo, int b7,
     gfx_clear();
     if (tx_guion_linea(TX_GUION_A484 + heroe, 0, &x, &y, &attr, &al, &s, &len)) banda(3, s, len, attr & 7);        /* 0x9C62 */
     minifigura(6, 20 + 12 * (heroe == 4 ? 2 : heroe));                                                                /* 0xA3E1 (tabla 0xA3F3) */
-    s = tx_str(TX_NOMBRES_MONSTRUO, tipo, &n);                                                                         /* 0x764A */
+    s = partida_tipo(&g_part, tipo)->nombre; n = partida_tipo(&g_part, tipo)->n;                                         /* 0x764A */
     gfx_char(20, UI_FILA(16), 0x72, C_BLACK, C_YELLOW);
     tx_cadena_en(21, UI_FILA(16), 9, s, n, 'C', C_BLACK, C_YELLOW);
     gfx_char(30, UI_FILA(16), 0x73, C_BLACK, C_YELLOW);
@@ -84,9 +71,9 @@ static void pantalla_combate(int heroe, int cuerpo, int mente, int tipo, int b7,
     if (ataca_heroe) { dados_fila(4, golpes, 0x70, C_CYAN); dados_fila(22, escudos, 0x71, C_MAGENTA); }               /* 0x99DB */
     else { dados_fila(22, golpes, 0x70, C_MAGENTA); dados_fila(4, escudos, 0x71, C_CYAN); }                           /* 0x99F8 */
     vence = golpes > escudos;                                                                                          /* 0x9A26 y 0x9A4D */
-    if (!vence) retrato = 9;
-    else retrato = ataca_heroe ? retrato_monstruo[tipo % 13] : retrato_heroe[heroe];
-    if (pk_retratos && pack_get(pk_retratos, retrato, &g)) gfx_blit(&g, 64, VY0);
+    if (!vence) retrato = RETRATO_FALLO;
+    else retrato = ataca_heroe ? partida_tipo(&g_part, tipo)->retrato : retrato_heroe[heroe];
+    if (data_retrato(retrato, &g)) gfx_blit(&g, 64, VY0);                                                           /* de memoria o, si no caben todos, del disco */
     mus_efecto(vence ? 3 : 2);                                                                                         /* 0x9AA3: golpe o fallo */
     if (ataca_heroe) tx_guion(vence ? TX_GUION_B89F : TX_GUION_B8BA, -1, 0, 0);
     else tx_guion(vence ? TX_GUION_B866 : TX_GUION_B87C, -1, 0, 0);
@@ -127,12 +114,14 @@ static int si_no(int id)                             /* 0x7436 y 0x8D5B: 1 = SI 
                 const u8 *e = z + 6 * i;
                 if (col >= e[0] && col < e[1] && fila >= e[2] && fila < e[3]) {
                     cursor_erase();
-                    return (e[4] | (e[5] << 8)) == 0x745A;
+                    return (e[4] << 8 | e[5]) == 0x745A;
                 }
             }
         }
     }
 }
+
+int jv_si_no(int id) { return si_no(id); }
 
 /* ---------------------------------------------------------------- el panel del personaje */
 static int lista(int id, int campo, int n, int mascara, int sel, int col, int row)    /* 0x9703: una linea por cada bit a uno; las elegidas, en negativo */
@@ -358,7 +347,10 @@ int ui_atacar(int pers)
         cursor_erase();
         gfx_clear();
         if (!(p->mons[v->objetivo - 1].cuerpo & 1) || alc) {                                    /* 0x73A6 */
-            if (!(p->mons[v->objetivo - 1].cuerpo & 1)) rotulo(TX_GUION_B8D8, 1);
+            if (!(p->mons[v->objetivo - 1].cuerpo & 1)) {
+                if ((p->mons[v->objetivo - 1].cuerpo & 0x40) && combate_arma_rota(p, pers)) rotulo(TX_GUION_B4F4, 0);      /* 0x732A: SU ARMA ESTA ROTA */
+                rotulo(TX_GUION_B8D8, 1);
+            }
             else if (alc == ALC_BALLESTA) tx_guion(TX_GUION_B934, -1, 0, 0);
             else if (alc == ALC_LEJOS) tx_guion(TX_GUION_B913, -1, 0, 0);
             else tx_guion(TX_GUION_B8D8, -1, 0, 0);
@@ -378,7 +370,7 @@ int ui_atacar(int pers)
         if (r->t17 & 0x40) {                                                                    /* 0x73F4: heroico, otro ataque */
             r->t17 &= (u8)~0x40; r->efectos &= (u8)~0x40;
             otra = 1;
-        } else if (tipo == 1) {                                                                 /* 0x741E y 0x9AF1: la vara de orco, la primera vez en la sala */
+        } else if (partida_tipo(p, tipo)->clase == TIPO_ORCO) {                                 /* 0x741E y 0x9AF1: la vara de orco, la primera vez en la sala */
             hab = 0;
             if (r->r12 & 8) if (!(v->hab_registrada & 1)) { v->hab_registrada |= 1; hab = 1; }
             if (!hab) { jv_boton(150); return 1; }
@@ -416,6 +408,24 @@ void ui_hechizo(int pers)                            /* 0x78B4: elegir a quien s
 }
 
 /* ---------------------------------------------------------------- el turno de Morcar (0x9CEA) */
+static void ui_errante(Partida *p, int num)                 /* 0x9A44-0x9A91: la niebla da sus pasos y golpea al heroe que encuentre */
+{
+    Salida o;
+    int k;
+    for (k = 0; k < p->ruta_pasos; k++) {
+        monstruo_errante_paso(p, num);
+        p->v.marcas = 0;
+        vista_plano_dibujar(p);
+        tx_guion(TX_GUION_A438, -1, 0, 0);
+        memset(&o, 0, sizeof(o));
+        if (monstruo_errante_golpe(p, num, &o)) jv_mensajes(&o);
+        jv_esperar(30);                                                              /* 0x9A7A */
+    }
+    p->v.marcas = 0;
+    vista_plano_dibujar(p);
+    tx_guion(TX_GUION_A438, -1, 0, 0);
+}
+
 void ui_turno_monstruos(void)
 {
     Partida *p = &g_part;
@@ -423,6 +433,7 @@ void ui_turno_monstruos(void)
     for (num = 1; num <= N_MONS; num++) {
         r = monstruo_planear(p, num);
         if (r == MON_NADA) continue;
+        if (r == MON_ERRANTE) { ui_errante(p, num); continue; }
         n = monstruo_pasos();
         for (k = 0; k < n; k++) {                                                   /* 0xA086: un paso y el plano */
             monstruo_paso(p, num, k);

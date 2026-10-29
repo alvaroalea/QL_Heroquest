@@ -16,9 +16,9 @@ int combate_cuenta_calaveras(int dados)                          /* 0x7B1C: cuan
 /* ---------------------------------------------------------------- dados */
 void combate_datos_monstruo(Partida *p)                          /* 0x751D */
 {
-    const int *t = vista_monstruo(monstruo(p, p->v.objetivo)->estad);
-    p->v.ataque_base = (u8)t[1];
-    p->v.defensa_base = (u8)t[2];
+    const Estadistica *e = partida_estadistica(p, monstruo(p, p->v.objetivo)->estad);
+    p->v.ataque_base = e->ataque;
+    p->v.defensa_base = e->defensa;
 }
 
 void combate_preparar(Partida *p, int pers)                      /* 0x9B65 */
@@ -37,7 +37,7 @@ void combate_preparar(Partida *p, int pers)                      /* 0x9B65 */
     p->v.bono_arma = 0;                                          /* la espada espiritual: 4 dados contra los muertos vivientes */
     {
         int tipo = monstruo(p, p->v.objetivo)->tipo;
-        p->v.dados_ataque = (u8)((tipo == 4 || tipo == 5 || tipo == 6) ? 4 : 3);
+        p->v.dados_ataque = (u8)(partida_tipo(p, tipo)->clase == TIPO_MUERTO ? 4 : 3);
     }
 }
 
@@ -45,7 +45,7 @@ void combate_bonos_ataque(Partida *p, int pers)                  /* 0x7559 */
 {
     Pers *r = &p->pers[pers];
     int a = p->v.dados_ataque;
-    if (((monstruo(p, p->v.objetivo)->estad + 1) & 0xFE) == 0x0C && !(r->r12 & 0x10)) a = 0;   /* los jefes solo reciben dano de la espada espiritual */
+    if (partida_estadistica(p, monstruo(p, p->v.objetivo)->estad)->jefe && !(r->r12 & 0x10)) a = 0;   /* los jefes solo reciben dano de la espada espiritual */
     else {
         if (r->t17 & 1) { a += 2; r->t17 &= (u8)~1; r->efectos &= (u8)~1; }
         if (r->t18 & 0x10) { r->t18 &= (u8)~0x10; a += 2; }
@@ -153,22 +153,43 @@ int combate_alcance(Partida *p, int pers, u8 *plano)             /* 0x7462 y 0x7
     return (b & 1) ? ALC_OK : ALC_NO_VE;
 }
 
+/* ---------------------------------------------------------------- la ampliacion: el arma se rompe */
+int combate_arma_rota(Partida *p, int pers)                      /* 0x732A-0x735C */
+{
+    Pers *r = &p->pers[pers];
+    int n = 0;
+    if (r->r11) { r->armas ^= r->r11; r->r11 = 0; n++; }         /* el arma en uso deja de ser suya */
+    if (r->r12 & 0x18) { r->objetos ^= (u8)(r->r12 & 0x18); r->r12 &= (u8)~0x18; n++; }   /* la vara de orco o la espada espiritual */
+    return n;
+}
+
 /* ---------------------------------------------------------------- muerte de un monstruo y recompensa */
+static void muerte_propia(Partida *p, const Muerte *mu)            /* 0x9813 y 0x9831: la rutina de la estadistica sustituye a la recompensa */
+{
+    int k;
+    if (mu->tipo == MUERTE_EPILOGO) { p->v.epilogo = 1; return; }
+    for (k = 0; k < mu->nb; k++) p->capa_c[casilla_indice(p->muerte_cel[mu->ini + k][0], p->muerte_cel[mu->ini + k][1])] = 0;
+    for (k = 0; k < mu->na; k++)                                 /* la escalera de salida: 0x38, 0x39, 0x3A y 0x3B */
+        p->capa_c[casilla_indice(p->muerte_cel[mu->ini + mu->nb + k][0], p->muerte_cel[mu->ini + mu->nb + k][1])] = (u8)(0x38 + k);
+    p->v.redibujar = 1;
+}
+
 void monstruo_muere(Partida *p, int num, int pers, Salida *o)    /* 0x9B31 */
 {
     Mons *m = monstruo(p, num);
-    const int *t = vista_monstruo(m->estad);
+    const Estadistica *t = partida_estadistica(p, m->estad);
     int i;
     m->b7 &= 0x0F;
     m->estado = 0;
     m->cuerpo &= (u8)~1;
     p->capa_c[m->casilla] = 0;
-    if (t[3]) {
-        if (t[4] == 2) { for (i = 0; i < 4; i++) p->pers[i].oro = (u16)(p->pers[i].oro + t[3]); }
-        else p->pers[pers].oro = (u16)(p->pers[pers].oro + t[3]);
+    if (m->estad < N_ESTAD && p->muerte[m->estad].tipo != MUERTE_NORMAL) { muerte_propia(p, &p->muerte[m->estad]); return; }
+    if (t->oro) {
+        if (t->quien == 2) { for (i = 0; i < 4; i++) p->pers[i].oro = (u16)(p->pers[i].oro + t->oro); }
+        else p->pers[pers].oro = (u16)(p->pers[pers].oro + t->oro);
     }
-    if (t[5]) p->pers[pers].objetos |= (u8)(1 << t[5]);
-    if (t[6]) msg(o, t[6] == 1 ? MSG_BANE_ORC : MSG_ESTRELLA, 0, 0);
+    if (t->objeto) p->pers[pers].objetos |= (u8)(1 << t->objeto);
+    if (t->mensaje) msg(o, t->mensaje == 1 ? MSG_BANE_ORC : MSG_ESTRELLA, 0, 0);
 }
 
 /* ---------------------------------------------------------------- tiradas */
@@ -261,7 +282,7 @@ void panel_efecto(Partida *p, int pers, int fila, Salida *o)     /* 0x7D6F: poci
                 int v = p->capa_c[c];
                 if (v && v < 0x30) {
                     int tipo = monstruo(p, v)->tipo;
-                    if (tipo == 4 || tipo == 5 || tipo == 6) { n++; monstruo_muere(p, v, pers, o); }
+                    if (partida_tipo(p, tipo)->clase == TIPO_MUERTO) { n++; monstruo_muere(p, v, pers, o); }
                 }
             }
         }
@@ -359,7 +380,7 @@ static void efecto_cuerpo(Partida *p, int tipo, int heroe, int num, int puntos, 
 
 int hechizo_inmune(const Partida *p)                             /* 0x7925 */
 {
-    return ((monstruo((Partida *)p, p->v.objetivo)->estad + 1) & 0xFE) == 0x0C;
+    return partida_estadistica(p, monstruo((Partida *)p, p->v.objetivo)->estad)->jefe;
 }
 
 void panel_caja(Partida *p, int pers, Salida *o)                 /* 0x9FF7 */

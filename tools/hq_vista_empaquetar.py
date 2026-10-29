@@ -32,7 +32,7 @@ con signo (word de 16 bits). Secciones, en este orden (de donde sale cada una en
   21 pociones  n=7  k=3 (bit de efecto que se suma a +0x10, indice del nombre, indice de la descripcion) de las cartas 9 a 15 (0x829B y 0xAE5F)
   22 emboscada n=4  k=2 (dx, dy) de las casillas donde puede aparecer el monstruo que te sigue (0x81C0)
   23 armas     n=7  k=1 byte de cada arma (0xAA81, de la lanza al baston): bits 0-1 = dados de mas, 5 = se pierde al lanzarla, 4 y 6 = alcance, 7 = tambien en diagonal
-  24 monstruos n=20 k=7 por tipo de monstruo (0xAA8C): movimiento, dados de ataque, de defensa, monedas que da al morir, a quien (0 nadie, 1 el que lo mata, 2 los cuatro heroes), bit de objeto que da (0 ninguno; 3 = baraja de orco) y mensaje (0 ninguno, 1 BANE DE ORC, 2 ESTRELLA DEL OESTE)
+  24 monstruos n=20 k=7 (YA NO SE USA: las estadisticas de monstruo son datos de la aventura, [estadisticas] de <aventura>.<idioma>.txt) por tipo de monstruo (0xAA8C): movimiento, dados de ataque, de defensa, monedas que da al morir, a quien (0 nadie, 1 el que lo mata, 2 los cuatro heroes), bit de objeto que da (0 ninguno; 3 = baraja de orco) y mensaje (0 ninguno, 1 BANE DE ORC, 2 ESTRELLA DEL OESTE)
   25 contacto  n=8  k=2 (dx, dy) de las ocho casillas de al lado, primero las cuatro de en medio y despues las diagonales (0x81C0)
   26 panel     n=10 k=4 (columna 1, columna 2, fila 1, fila 2) de las zonas de clic del panel del personaje (0x7FAE)
   27 mascaras  n=8  k=1 zonas del panel que se pueden usar: 0 a 3 por personaje al abrir la bolsa, 4 a 7 al elegir arma para atacar (0x7FEA)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lee data/mision_NN_es_bin y compara mapa, heroes, indicadores, monstruos y objetos con los datos originales del juego
+"""Lee data/heroquest_NN_es y compara mapa, heroes, indicadores, monstruos y objetos con los datos originales del juego
 (solo tiene sentido si se empaqueto desde asset/misiones/ sin modificar)."""
 import sys, os, struct
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -7,7 +7,7 @@ import hq_missions as hm
 import hq_txt_lib as T
 mal = 0
 for n in range(14):
-    d = open(os.path.join(T.ROOT, 'data/mision_%02d_es_bin' % n), 'rb').read(); r = hm.mision(n)
+    d = open(os.path.join(T.ROOT, 'data/heroquest_%02d_es' % n), 'rb').read(); r = hm.mision(n)
     assert d[:4] == b'HQMS' and struct.unpack('>H', d[6:8])[0] == n
     nm, no = d[20], d[21]; offs = struct.unpack('>6L', d[24:48])
     A, B, F, M, O = d[offs[0]:offs[0] + 494], d[offs[1]:offs[1] + 494], d[offs[2]:offs[2] + 86], d[offs[3]:offs[3] + 10 * nm], d[offs[4]:offs[4] + 3 * no]

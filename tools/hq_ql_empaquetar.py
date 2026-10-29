@@ -7,7 +7,7 @@ punto esta lejos de la paleta.
 
 Salidas (en data/; los nombres del QL no llevan punto):
   sprites_bin, escenario_bin, retratos_bin, marco_bin   graficos con color (y mascara si hay transparencia)
-  carga_scr   la pantalla de carga (marco/pantalla_carga.png) como memoria de pantalla del QL (32768 bytes) para volcarla desde el boot
+  heroquest_scr   la pantalla de carga (marco/pantalla_carga.png) como memoria de pantalla del QL (32768 bytes) para volcarla desde el boot
   baldosas_bin, fuente_normal_bin, fuente_manuscrita_bin   1 bit por punto, 8 bytes por caracter (como el original)
   build/datos/indice_<categoria>.txt   (solo para el PC) nombre, desplazamiento, ancho, alto
 Formato de los ficheros de graficos (todo en big endian, el del 68000):
@@ -79,6 +79,7 @@ def desempaquetar(datos, pw, h, mascara, W):
                 fila.append(((ce >> (s + 1)) & 1) * 4 + ((co >> (s + 1)) & 1) * 2 + ((co >> s) & 1))
         res.append(fila[:W])
     return res
+FONT_GLYPHS = 85                                  # glifos de cada fuente: 17 x 5 (los codigos 0x30-0x73 del original y 0x74-0x84 libres); igual que FONT_GLYPHS de src/gfx.h
 def main(desplazados, verificar):
     ent = [l.split() for l in open(os.path.join(ROOT, 'asset/graficos/indice.txt'))]
     cats = {}
@@ -93,6 +94,7 @@ def main(desplazados, verificar):
             for e in lista:
                 nom = os.path.basename(e[0])[:-4]; p, base = ruta(e[0]); w, h, filas = leer(p)
                 cw, ch, n, cols = (int(x) for x in e[3].split(':')[1:5])
+                if nom.startswith('fuente_'): n = max(n, cols * (h // ch))     # si el PNG tiene mas filas (acentos, n con tilde) se empaquetan tambien
                 b = bytearray()
                 for c in range(n):
                     for y in range(ch):
@@ -100,12 +102,17 @@ def main(desplazados, verificar):
                         for k in range(cw):
                             if filas[(c // cols) * ch + y][(c % cols) * cw + k][3] >= 128: v |= 0x80 >> k
                         b.append(v)
+                if nom.startswith('fuente_'): b += bytes(max(0, FONT_GLYPHS * 8 - len(b)))      # hueco hasta FONT_GLYPHS (src/gfx.h): glifos 0x74-0x84 libres
+                if nom == 'marca_activo':                    # baldosas que no estan en la hoja: la 33 (voluta de la niebla) va detras de la marca (la 32), de fuentes/baldosa_niebla.png
+                    pe, _ = ruta('fuentes/baldosa_niebla.png'); we, he, fe = leer(pe)
+                    for y in range(8): b.append(sum(0x80 >> k for k in range(8) if fe[y][k][3] >= 128))
                 open(os.path.join(ROOT, 'data', nom + '_bin'), 'wb').write(b)
                 print('%-24s %5d bytes  (%s)' % (nom + '_bin', len(b), base)); n_ret += base == 'asset/graficos_ql'
             continue
         cuerpos = []; tabla = []; indice = []
+        lista_all = lista; lista = [e for e in lista_all if os.path.basename(e[0])[:-4] != 'pantalla_carga']      # la pantalla de carga no va en marco_bin: solo en heroquest_scr
         N = len(lista); off = 8 + 16 * N
-        for e in lista:
+        for e in lista_all:
             rel = e[0]; nom = os.path.basename(rel)[:-4]; p, base = ruta(rel); n_ret += base == 'asset/graficos_ql'
             w, h, filas = leer(p)
             mat = [[a_indices(px, avisos, rel) for px in fila] for fila in filas]
@@ -125,8 +132,9 @@ def main(desplazados, verificar):
                 # centrada en vertical (los 256 x 192 del Spectrum van entre las lineas 32 y 223) y el resto en negro
                 scr = bytearray(32768); y0 = (256 - h) // 2; d0, pw0c = empaquetar_img(mat, False)
                 if w == 256 and h <= 256: scr[y0 * 128:(y0 + h) * 128] = d0
-                open(os.path.join(ROOT, 'data', 'carga_scr'), 'wb').write(scr)
-                print('%-24s %6d bytes  (pantalla de carga, %s)' % ('carga_scr', len(scr), base))
+                open(os.path.join(ROOT, 'data', 'heroquest_scr'), 'wb').write(scr)
+                print('%-24s %6d bytes  (pantalla de carga, %s)' % ('heroquest_scr', len(scr), base))
+                continue
             tabla.append(struct.pack('>LHHHHHH', off, w, h, pw0 if copias == 1 else pw0 + 1, copias, 1 if mascara else 0, 0))
             cuerpos.append(bytes(datos)); indice.append('%3d %-40s %8d %4d %3d %s%s' % (len(indice), nom, off, w, h, 'M' if mascara else '-', ' x%d' % copias if copias > 1 else ''))
             off += len(datos)

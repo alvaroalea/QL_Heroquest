@@ -177,7 +177,7 @@ void pers_restaurar_equipo(Partida *p, int i)
 int mision_continua(const Partida *p)         /* MISION_CONTINUA (0x6EB5) */
 {
     if (p->v.muertos != 0x0F) return 1;
-    if (p->mision != 1) return 0;
+    if (!(p->ev & EV_RAGNAR)) return 0;
     return p->pers[4].estado != 0;
 }
 
@@ -232,6 +232,50 @@ int casilla_indice(int col, int fila) { return fila * MAP_W + col; }       /* DI
 static u16 be16(const u8 *q) { return (u16)((q[0] << 8) | q[1]); }
 static u32 be32(const u8 *q) { return ((u32)q[0] << 24) | ((u32)q[1] << 16) | ((u32)q[2] << 8) | q[3]; }
 
+void partida_estadisticas(Partida *p, const u8 *tab)
+{
+    int i, n = tab ? tab[0] : 0;
+    memset(p->estadisticas, 0, sizeof(p->estadisticas));
+    if (n > N_ESTAD) n = N_ESTAD;
+    for (i = 0; i < n; i++) {
+        const u8 *q = tab + 1 + 9 * i;
+        Estadistica *e = &p->estadisticas[i];
+        e->mov = q[0]; e->ataque = q[1]; e->defensa = q[2]; e->oro = (u16)((q[3] << 8) | q[4]);
+        e->quien = q[5]; e->objeto = q[6]; e->mensaje = q[7]; e->jefe = q[8];
+    }
+}
+
+const Estadistica *partida_estadistica(const Partida *p, int estad) { return &p->estadisticas[estad < N_ESTAD ? estad : N_ESTAD - 1]; }
+
+void partida_tipos(Partida *p, const u8 *tab)
+{
+    int i, n = tab ? tab[0] : 0;
+    memset(p->tipos, 0, sizeof(p->tipos));
+    if (n > N_TIPOS) n = N_TIPOS;
+    for (i = 0; i < n; i++) {
+        const u8 *q = tab + 1 + 16 * i;
+        TipoMons *t = &p->tipos[i];
+        t->retrato = q[0]; t->icono = q[1]; t->sprite = q[2]; t->n = q[3] > 11 ? 11 : q[3]; t->clase = q[4];
+        memcpy(t->nombre, q + 5, 11);
+    }
+}
+
+const TipoMons *partida_tipo(const Partida *p, int tipo) { return &p->tipos[tipo < N_TIPOS ? tipo : N_TIPOS - 1]; }
+
+static int cargar_muertes(Partida *p, const u8 *d, long len, long o)       /* n, y por entrada: estadistica, rutina, nb, na y (nb + na) pares (columna, fila) */
+{
+    int n = d[o++], i, k, ini = 0, nb, na, e;
+    for (i = 0; i < n; i++) {
+        if (o + 4 > len) return 0;
+        e = d[o]; nb = d[o + 2]; na = d[o + 3];
+        if (e >= N_ESTAD || d[o + 1] > MUERTE_EPILOGO || na > 4 || ini + nb + na > N_MUERTE_CEL || o + 4 + 2L * (nb + na) > len) return 0;
+        p->muerte[e].tipo = d[o + 1]; p->muerte[e].nb = (u8)nb; p->muerte[e].na = (u8)na; p->muerte[e].ini = (u8)ini;
+        for (k = 0; k < nb + na; k++) { p->muerte_cel[ini + k][0] = d[o + 4 + 2 * k]; p->muerte_cel[ini + k][1] = d[o + 5 + 2 * k]; }
+        ini += nb + na; o += 4 + 2L * (nb + na);
+    }
+    return 1;
+}
+
 int partida_cargar(Partida *p, int mision, const u8 *d, long len, const u8 *presentes)
 {
     long oa, ob, oi, om, oo;
@@ -240,10 +284,14 @@ int partida_cargar(Partida *p, int mision, const u8 *d, long len, const u8 *pres
     if (len < 48 || d[0] != 'H' || d[1] != 'Q' || d[2] != 'M' || d[3] != 'S' || be16(d + 6) != (u16)mision) return 0;
     nm = d[20]; no = d[21];
     oa = (long)be32(d + 24); ob = (long)be32(d + 28); oi = (long)be32(d + 32); om = (long)be32(d + 36); oo = (long)be32(d + 40);
+    if (oa >= 52 && (be32(d + 48) + 1 > (u32)len)) return 0;
+    if (oa >= 56 && (be32(d + 52) + 2 > (u32)len)) return 0;
+    if (oa >= 60 && (be32(d + 56) + 2 > (u32)len)) return 0;
     if (nm > N_MONS || oa + MAP_N > len || ob + MAP_N > len || oi + N_IND > len || om + nm * 10L > len || oo + no * 3L > len) return 0;
 
     memset(&p->v, 0, sizeof(Vars));                    /* 0xA983 a 0xA9D6 a cero */
     p->mision = (u8)mision;
+    p->ev = be16(d + 22);                              /* banderas de eventos de la mision */
     p->salidos = 0;
     memcpy(p->capa_a, d + oa, MAP_N);                  /* 0x400 bytes a 0x6200: capas A y B */
     memcpy(p->capa_b, d + ob, MAP_N);
@@ -261,13 +309,34 @@ int partida_cargar(Partida *p, int mision, const u8 *d, long len, const u8 *pres
         r->armadura &= 0x8F;
     }
     memcpy(p->ind, d + oi, N_IND);                     /* indicadores a 0x6BB6 */
+    memset(p->muerte, 0, sizeof(p->muerte));           /* rutinas de muerte: la normal salvo las de la mision (seccion que empieza en el long de +48) */
+    if (oa >= 52 && !cargar_muertes(p, d, len, (long)be32(d + 48))) return 0;
+    p->ruta_pasos = 0; p->ruta_n = 0;                  /* ruta de los errantes (seccion que empieza en el long de +52): pasos, n y n tramos (eje y sentido, destino) */
+    if (oa >= 56) {
+        long o = (long)be32(d + 52);
+        int n;
+        if (o + 2 > len) return 0;
+        n = d[o + 1];
+        if (n > N_RUTA || o + 2 + 2L * n > len) return 0;
+        p->ruta_pasos = d[o]; p->ruta_n = (u8)n;
+        for (i = 0; i < n; i++) { p->ruta[i][0] = d[o + 2 + 2 * i]; p->ruta[i][1] = d[o + 3 + 2 * i]; }
+    }
+    p->tp_sala = 0; p->tp_n = 0;                       /* teletransporte (seccion de +56): sala, n y n destinos de 5 bytes */
+    if (oa >= 60) {
+        long o = (long)be32(d + 56);
+        int n, k;
+        n = d[o + 1];
+        if (n > N_TELEPORTE || o + 2 + 5L * n > len) return 0;
+        p->tp_sala = d[o]; p->tp_n = (u8)n;
+        for (i = 0; i < n; i++) for (k = 0; k < 5; k++) p->tp[i][k] = d[o + 2 + 5 * i + k];
+    }
     memset(p->mons, 0, sizeof(p->mons));               /* lista de monstruos (250 bytes a cero y la copia) */
     for (i = 0; i < nm; i++) {
         const u8 *q = d + om + i * 10;
         Mons *m = &p->mons[i];
         m->estado = q[0]; m->col = q[1]; m->fila = q[2]; m->hab = q[3];
         m->casilla = (u16)(q[4] | (q[5] << 8));
-        m->cuerpo = q[6]; m->b7 = q[7]; m->tipo = q[8]; m->estad = q[9];
+        m->cuerpo = q[6]; m->b7 = q[7]; m->tipo = q[8]; m->estad = q[9]; m->tramo = 0;
     }
     for (i = 0; i < no; i++) {                         /* objetos sobre la capa C */
         const u8 *q = d + oo + i * 3;
@@ -276,7 +345,7 @@ int partida_cargar(Partida *p, int mision, const u8 *d, long len, const u8 *pres
 
     r = &p->pers[4];                                   /* el quinto personaje: solo existe, y en otro sitio, en la mision 1 */
     r->estado = 0;
-    if (mision == 1) { r->col = 6; r->fila = 1; r->cuerpo = 2; r->fotograma = 0x2C; }
+    if (p->ev & EV_RAGNAR) { r->col = 6; r->fila = 1; r->cuerpo = 2; r->fotograma = 0x2C; }
 
     for (i = 0; i < N_MONS; i++) {                     /* monstruos: habitacion, casilla y su numero en la capa C */
         Mons *m = &p->mons[i];
@@ -288,8 +357,8 @@ int partida_cargar(Partida *p, int mision, const u8 *d, long len, const u8 *pres
         p->capa_c[c] = (u8)(i + 1);
     }
 
-    if (mision == 5) equipo_ocultar(p);                /* laberinto de Melar: sin equipo ni hechizos */
-    if (mision == 7) {                                 /* el mago del fuego: el elfo y el hechicero sin hechizos de fuego */
+    if (p->ev & EV_SIN_EQUIPO) equipo_ocultar(p);                /* laberinto de Melar: sin equipo ni hechizos */
+    if (p->ev & EV_SIN_FUEGO) {                        /* el mago del fuego: el elfo y el hechicero sin hechizos de fuego */
         p->pers[2].hechizos[1] &= 0x38;
         p->pers[3].hechizos[1] &= 0x38;
     }

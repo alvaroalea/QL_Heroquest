@@ -16,7 +16,9 @@ typedef struct {
 void gfx_init(void);                                   /* tablas de color */
 void gfx_clear(void);                                  /* toda la pantalla a negro */
 void gfx_cells_fill(int col, int row, int ncols, int nrows, u8 c);   /* rellena celdas de un color */
-void gfx_set_font(const u8 *font);                     /* 544 bytes: glifo = (codigo - 0x30) * 8 */
+#define FONT_GLYPHS 85                                      /* glifos de una fuente: codigos 0x30-0x84 (los del original acaban en 0x73; 0x74-0x84 libres para acentos y n con tilde) */
+#define FONT_BYTES  (FONT_GLYPHS * 8)
+void gfx_set_font(const u8 *font);                     /* FONT_BYTES bytes: glifo = (codigo - 0x30) * 8 */
 void gfx_char(int col, int row, u8 code, u8 ink, u8 paper);
 void gfx_glifo(int col, int row, const u8 *g8, u8 ink, u8 paper);   /* una celda con 8 bytes de bitmap cualquiera (baldosas del plano) */
 void gfx_text(int col, int row, const u8 *s, int n, u8 ink, u8 paper);   /* n codigos del juego */

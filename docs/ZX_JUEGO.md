@@ -67,4 +67,4 @@ Coincide con el código: `ELEGIR_MISION` (`0x6141`) → `0x9CBA: JP 0x5B3F` (`IN
 
 ## Opción «Cargar otras aventuras»
 
-Existe en el menú y en el código (`CARGAR_AVENTURAS`, `0x651F`: carga de cinta un bloque de 0x400 bytes en `0x4000` y salta a `0x4015`), pero **nunca se publicaron más aventuras**: es una función prevista y no utilizada.
+Existe en el menú y en el código (`CARGAR_AVENTURAS`, `0x651F`: carga de cinta un bloque de 0x400 bytes en `0x4000` y salta a `0x4015`), pero en el original no se usa: la ampliación *Return of the Witch Lord* es otra imagen completa de la cinta (`docs/ZX_AMPLIACION.md`). En el port la opción carga las misiones de una ampliación desde el disco.

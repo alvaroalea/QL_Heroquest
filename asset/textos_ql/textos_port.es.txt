@@ -1,0 +1,39 @@
+# Textos propios del port a QL (no estan en el juego original). Mismo formato que textos.txt (docs/ZX_DATOS_QL.md).
+# EDITAR LA COPIA de asset/textos_ql/textos_port.txt si se quiere traducir.
+
+[PORT_CONTROLES] cadenas campo=24 alineacion=L ; pantalla de controles
+ELEGIR LOS CONTROLES
+1.MOVIMIENTO
+2.MUSICA
+3.MANUSCRITO
+0.SALIDA
+ON
+OFF
+4.IDIOMA
+
+[PORT_MENSAJES] cadenas campo=30 alineacion=C
+FIN DE LA MISION
+PULSA UNA TECLA
+GUARDADO
+NO SE ENCUENTRA
+ERROR DE DISCO
+ESCRIBE EL NOMBRE Y PULSA OK
+EL JUEGO CONTINUARA...
+
+[PORT_FIN_MISION] ventana y=9 centro=16 ancho=22
+C|HAS LLEGADO AL FINAL
+C|DE LA PARTE JUGABLE
+C|
+C|PULSA UNA TECLA
+C|PARA VOLVER AL MENU
+
+[PORT_ABANDONAR] ventana y=9 centro=16 ancho=19
+C|ABANDONAR LA MISION
+C|
+C|SI          NO
+zona|9|13|12|13|0x745A
+zona|21|25|12|13|0x7453
+
+[PORT_COMBATE] cadenas campo=7 alineacion=L ; rotulos de los puntos de cada combatiente (la cifra va a 7 columnas del rotulo)
+CUERPO
+MENTE

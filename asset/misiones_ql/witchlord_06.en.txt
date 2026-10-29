@@ -1,0 +1,114 @@
+# Mision 6 de Return of the Witch Lord (original ZX 128K ingles: banco 3, 0xC711) - generado por tools/hq_misiones_extraer.py
+# EDITAR LA COPIA de asset/misiones_ql/witchlord_NN.en.txt (este fichero se regenera). Formato y significado de los campos en docs/ZX_DATOS_QL.md.
+
+mision 6
+nombre THE FORGOTTEN LEGION
+# eventos: banderas de comportamiento (numeros de bit; cada bit repite lo especial de esa mision de Hero Quest, ver docs/ZX_MISIONES.md):
+#   0 solo el primero que sale cobra 100 | 1 Sir Ragnar | 3 oro de Magnus | 4 roca | 5 sin equipo ni hechizos | 6 cada heroe que sale cobra 100 | 7 sin hechizos de fuego | 9 castillo | 11 sala que se cierra | 12 el monstruo 1 cobra vida al pisar la columna 5 (filas 3 y 4) | 13 teletransporte al salir de la sala de la linea teleporte | 14 la roca de la trampa cae a la derecha del heroe
+eventos -
+# muerte: rutina al morir un monstruo segun su estadistica (sin linea, la normal): muerte <estadistica> normal | epilogo | salida [casillas a borrar (columna,fila) >] casillas de la escalera (1 a 4, codigos 0x38 a 0x3B)
+# errante: ruta de los monstruos con el bit 7 en b6 y sin vida (la niebla de la muerte): errante <pasos por ronda> <tramos que se repiten>, tramo = x o y, + o - y la coordenada con la que acaba
+# teleporte: con la bandera 13, salir de la sala indicada lleva a un destino al azar: teleporte <sala> <destinos>, destino = sala,columna,fila,columna de la puerta,fila de la puerta (1 a 6)
+
+# heroes: indice|columna|fila|grafico inicial (se asigna a los 4 heroes en orden: barbaro, enano, elfo, hechicero)
+heroe 0|8|10|26
+heroe 1|8|12|38
+heroe 2|7|10|50
+heroe 3|7|12|62
+
+[mapa] 26 columnas x 19 filas, cada casilla AA.BB (capa A . capa B) en hexadecimal
+01.C0 01.80 01.80 01.80 02.80 02.80 02.80 02.80 02.80 02.80 03.80 03.80 03.80 03.80 03.80 03.80 04.80 04.80 04.80 04.80 04.80 04.80 05.80 05.80 05.80 05.80
+01.40 15.C0 15.20 15.80 15.80 16.C0 16.80 16.20 16.80 00.C0 00.80 00.80 03.41 03.00 00.C0 00.80 00.80 19.C0 19.80 19.80 19.80 1A.C0 1A.80 1A.80 1A.80 05.41
+01.40 15.40 15.00 15.00 15.00 16.40 16.00 16.00 16.00 00.40 00.00 00.00 03.41 03.00 00.40 00.00 00.00 19.40 19.00 19.00 19.00 1A.18 1A.00 1A.00 1A.00 05.41
+01.40 15.40 15.00 15.00 15.00 16.40 16.00 16.00 16.00 00.40 00.00 00.00 03.41 03.00 00.40 00.00 00.00 19.40 19.00 19.00 19.00 1A.40 1A.00 1A.00 1A.00 05.11
+01.40 1B.C0 1B.20 1B.80 1B.80 1C.C0 1C.80 1C.20 1C.80 00.40 00.00 00.00 03.41 03.00 00.40 00.00 00.00 19.40 19.00 19.00 19.00 1A.40 1A.00 1A.00 1A.00 05.41
+06.40 1B.40 1B.00 1B.00 1B.00 1C.40 1C.00 1C.00 1C.00 00.40 00.00 00.00 08.40 08.00 00.40 00.00 00.00 1D.C0 1D.20 1D.80 1D.80 00.C0 00.80 00.80 00.80 0A.40
+06.40 1B.40 1B.00 1B.00 1B.00 1C.18 1C.00 1C.00 1C.00 07.C0 08.80 08.80 08.00 08.00 08.81 08.81 09.80 1D.40 1D.00 1D.00 1D.00 00.40 00.00 00.00 00.00 0A.40
+06.40 1B.40 1B.00 1B.00 1B.00 1C.40 1C.00 1C.00 1C.00 07.40 1F.C0 1F.80 1F.80 1F.80 1F.80 1F.80 09.40 1D.40 1D.00 1D.00 1D.00 00.40 00.00 00.00 00.00 0A.40
+06.40 1B.40 1B.00 1B.00 1B.00 1C.40 1C.00 1C.00 1C.00 07.40 1F.10 1F.00 1F.00 1F.00 1F.00 1F.00 09.40 1D.40 1D.00 1D.00 1D.00 00.40 00.00 00.00 00.00 0A.40
+06.40 06.81 06.81 06.81 07.80 07.80 07.80 07.80 07.80 07.00 1F.40 1F.00 1F.00 1F.00 1F.00 1F.00 09.40 09.81 09.81 09.29 09.81 09.81 0A.80 0A.80 0A.80 0A.00
+0B.40 00.C0 00.80 00.80 00.80 00.C0 00.80 22.C0 22.80 0C.40 1F.40 1F.00 1F.00 1F.00 1F.00 1F.00 0E.10 00.C0 00.80 00.80 00.80 00.C0 00.80 00.80 00.80 0F.40
+00.C0 00.40 00.00 00.00 00.00 00.40 00.00 22.40 22.00 0C.10 1F.40 1F.00 1F.00 1F.00 1F.00 1F.00 0E.40 00.40 00.00 00.00 00.00 00.40 00.00 00.00 00.00 0F.40
+00.40 00.40 00.00 00.00 00.00 00.40 00.00 22.40 22.00 0C.40 0D.80 0D.80 0D.80 0D.80 0D.80 0D.80 0E.00 00.40 00.00 00.00 00.00 00.40 00.00 00.00 00.00 0F.40
+00.40 00.40 00.00 00.00 00.00 00.C0 00.80 00.80 00.80 00.C0 00.80 00.80 0D.41 0D.00 28.C0 28.80 28.80 28.80 00.41 00.00 00.00 00.40 00.00 00.00 00.00 0F.40
+00.40 00.C0 00.80 00.80 00.80 00.40 00.00 00.00 00.00 00.40 00.00 00.00 0D.41 0D.00 28.40 28.00 28.00 28.00 29.90 29.80 29.80 2A.C0 2A.80 2A.80 2A.80 0F.40
+00.40 00.40 00.00 00.00 00.00 00.40 00.00 00.00 00.00 00.40 00.00 00.00 12.40 12.00 28.40 28.00 28.00 28.00 29.40 29.00 29.00 2A.40 2A.00 2A.00 2A.00 14.40
+00.40 00.40 00.00 00.00 00.00 00.40 00.00 00.00 00.00 00.40 00.00 00.00 12.40 12.00 28.40 28.00 28.00 28.00 29.40 29.00 29.00 2A.10 2A.00 2A.00 2A.00 14.40
+00.40 00.40 00.00 00.00 00.00 00.40 00.00 00.00 00.00 00.40 00.00 00.00 12.40 12.00 28.40 28.00 28.00 28.00 29.40 29.00 29.00 2A.40 2A.00 2A.00 2A.00 14.40
+00.40 00.81 00.81 00.81 00.80 00.80 00.80 00.80 00.80 00.80 00.80 00.80 12.40 12.00 12.81 12.81 13.20 13.80 13.80 13.80 13.80 13.80 14.80 14.20 14.80 14.00
+
+[indicadores] 86 bytes iniciales (se copian a 0x6BB6 del original): marcas de habitaciones, cofres y puertas ya usados
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+
+[monstruos] estado|columna|fila|b3|b4|b5|b6|b7|tipo|estadistica   (10 bytes del original; b3-b5 los pone el juego)
+monstruo|0|0|0|0|0|0|1|19|3|3
+monstruo|129|0|0|0|0|0|1|16|6|6
+monstruo|129|12|0|0|0|0|1|16|4|4
+monstruo|129|13|1|0|0|0|1|16|4|4
+monstruo|129|18|2|0|0|0|1|16|4|4
+monstruo|129|7|3|0|0|0|1|16|6|6
+monstruo|129|0|4|0|0|0|1|16|4|4
+monstruo|129|2|4|0|0|0|1|19|3|3
+monstruo|129|20|4|0|0|0|1|16|6|6
+monstruo|129|6|5|0|0|0|1|16|4|4
+monstruo|129|8|5|0|0|0|1|16|6|6
+monstruo|129|17|5|0|0|0|1|16|5|5
+monstruo|129|20|5|0|0|0|1|16|5|5
+monstruo|129|9|6|0|0|0|1|16|5|5
+monstruo|129|13|8|0|0|0|1|21|11|11
+monstruo|129|11|9|0|0|0|1|16|4|4
+monstruo|129|14|9|0|0|0|1|16|4|4
+monstruo|129|17|9|0|0|0|1|16|6|6
+monstruo|129|0|10|0|0|0|1|16|4|4
+monstruo|129|12|10|0|0|0|1|19|3|3
+monstruo|129|13|10|0|0|0|1|19|3|3
+monstruo|129|22|15|0|0|0|1|16|5|5
+monstruo|129|22|17|0|0|0|1|16|5|5
+monstruo|129|12|18|0|0|0|1|16|4|4
+monstruo|129|13|18|0|0|0|1|16|4|4
+
+[objetos] columna|fila|codigo   (codigos de la capa de objetos: 0x30-0x5B; el nombre es solo orientativo)
+objeto|5|0|48 ; 0x30 
+objeto|12|3|48 ; 0x30 
+objeto|13|3|48 ; 0x30 
+objeto|25|5|48 ; 0x30 
+objeto|16|9|48 ; 0x30 
+objeto|9|10|48 ; 0x30 
+objeto|0|11|48 ; 0x30 
+objeto|11|18|48 ; 0x30 
+objeto|20|18|48 ; 0x30 
+objeto|2|1|50 ; 0x32 
+objeto|18|6|50 ; 0x32 
+objeto|19|6|50 ; 0x32 
+objeto|9|8|50 ; 0x32 
+objeto|6|9|50 ; 0x32 
+objeto|16|12|50 ; 0x32 
+objeto|19|16|50 ; 0x32 
+objeto|0|3|54 ; 0x36 
+objeto|17|6|54 ; 0x36 
+objeto|20|6|54 ; 0x36 
+objeto|0|8|54 ; 0x36 
+objeto|3|9|54 ; 0x36 
+objeto|23|16|54 ; 0x36 
+objeto|15|18|54 ; 0x36 
+objeto|3|2|56 ; 0x38 
+objeto|3|3|57 ; 0x39 
+objeto|4|2|58 ; 0x3A 
+objeto|4|3|59 ; 0x3B 
+
+[objetivo] texto de presentacion: atributo(hex)|alineacion(L/C/R)|columna|fila|texto
+03|L|8|0|THE FORGOTTEN LEGION
+06|C|16|4|YOU HAVE ESCAPED FROM THE WITCH
+06|C|16|5|LORD, BUT IT WILL NOT BE LONG
+06|C|16|6|BEFORE HE FOLLOWS YOU.
+06|C|16|8|THE HALLS THROUGH WHICH YOU NOW
+06|C|16|9|PASS HOLD THE FORGOTTEN LEGION,
+06|C|16|10|THE ELITE OF THE WITCH LORD'S
+06|C|16|11|ARMY. THEY ARE LED BY SKULMAR.
+06|C|16|13|IN COMBAT THEY ARE TO BE FEARED,
+06|C|16|14|FOR THEY BEAR THE SCARS OF A
+06|C|16|15|THOUSAND BATTLES,
+06|C|16|16|EACH ONE A VICTORY FOR CHAOS.

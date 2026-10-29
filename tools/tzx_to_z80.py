@@ -26,7 +26,11 @@ def main(tzx, outdir):
     bl = blocks(open(tzx, 'rb').read())
     for n, b in enumerate(bl):
         open(os.path.join(outdir, 'blk%02d.bin' % n), 'wb').write(b[1:-1])
-    scr, game = bl[3][1:-1], bl[5][1:-1]
+    # el bloque del juego es el de 39936 bytes (flag + 39934 + control); la pantalla de carga (6914 bytes) falta en la ampliacion Return of the Witch Lord;
+    # los cinco bloques sin cabecera (bancos 1, 3, 4, 6 y 7) van justo detras
+    gi = [k for k, b in enumerate(bl) if len(b) == 39936][0]
+    game = bl[gi][1:-1]
+    scr = next((b[1:-1] for b in bl if len(b) == 6914), b'')
     ram = [bytearray(16384) for _ in range(8)]
     # memoria 48K fija: 0x4000 = banco 5, 0x8000 = banco 2, 0xC000 = banco 0 (al arrancar)
     mem = bytearray(65536)
@@ -34,7 +38,7 @@ def main(tzx, outdir):
     mem[0x6400:0x6400+len(game)] = game
     ram[5][:] = mem[0x4000:0x8000]; ram[2][:] = mem[0x8000:0xC000]; ram[0][:] = mem[0xC000:]
     # bancos paginados por el cargador propio en 0x6580
-    for blk, bank, off in ((6, 1, 0x1000), (7, 3, 0), (8, 4, 0), (9, 6, 0), (10, 7, 0)):
+    for blk, bank, off in ((gi + 1, 1, 0x1000), (gi + 2, 3, 0), (gi + 3, 4, 0), (gi + 4, 6, 0), (gi + 5, 7, 0)):
         d = bl[blk][1:-1]
         ram[bank][off:off+len(d)] = d
     for i in range(8):

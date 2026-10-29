@@ -1,0 +1,736 @@
+# Textos de Hero Quest (ZX Spectrum 128K, version en espanol) - generado por tools/hq_textos_extraer.py
+# EDITAR LA COPIA de asset/textos_ql/textos.txt (este fichero se regenera). Formato en docs/ZX_DATOS_QL.md.
+# Alfabeto: letras mayusculas, cifras, espacio, . , ' ! = ? y los codigos {XX} (glifo XX de la fuente; ver alfabeto del documento).
+# Las longitudes pueden cambiar: ventanas (ancho y columna), centrados y campos se recalculan al empaquetar.
+
+# ===================== VENTANAS (mensajes con marco)
+
+[VENT_AC50] ventana y=10 centro=16 ancho=9 original=0xAC50
+C|NO VES
+C|NADA
+
+[VENT_AC66] ventana y=10 centro=15 ancho=19 original=0xAC66
+C|ACTIVAS UNA TRAMPA
+C|PIERDES PUNTOS
+
+[VENT_AC90] ventana y=10 centro=16 ancho=23 original=0xAC90
+C|MIENTRAS ESTABAS
+L|BUSCANDO,UN MONSTRUO TE
+C|HA SEGUIDO Y TE ATACA
+
+[VENT_ACD9] ventana y=9 centro=16 ancho=16 original=0xACD9
+C|APARECE UN
+C|FANTASMA,SE RIE
+L|DISPARATADAMENTE
+C|Y DESAPARECE
+
+[VENT_AD1D] ventana y=8 centro=15 ancho=26 original=0xAD1D
+L|EL SUELO SE ABRE Y TE CAES
+L|A UN FOSO, PIERDES 1 PUNTO
+C|LOGRAS SALIR JUSTO CUANDO
+C|EL SUELO SE ESTA CERRANDO
+
+[VENT_AD8A] ventana y=8 centro=16 ancho=20 original=0xAD8A
+L|UNA LANZA SE DISPARA
+C|DESDE UNA ABERTURA
+L|Y TE ALCANZA.PIERDES
+C|1 DE TUS PUNTOS
+
+[VENT_ADDE] ventana y=12 centro=15 ancho=11 original=0xADDE
+C|ENCUENTRAS
+C|
+L|MONEDAS ORO
+
+[VENT_AE03] ventana y=9 centro=15 ancho=22 original=0xAE03
+C|HAS ENCONTRADO UNA
+C|POCION DE
+L|CUANDO EMPLEAS
+C|
+
+[VENT_AF65] ventana y=11 centro=16 ancho=10 original=0xAF65
+L|HABITACION
+L|YA HA SIDO
+L|REGISTRADA
+
+[VENT_AF87] ventana y=8 centro=14 ancho=17 original=0xAF87
+L|TE VES ENVUELTO
+L|POR UNA TEMPESTAD
+C|PIERDES TU TURNO
+
+[VENT_AFBE] ventana y=9 centro=16 ancho=16 original=0xAFBE
+C|ESTAS DURMIENDO
+L|PIERDES TU TURNO
+
+[VENT_AFE2] ventana y=10 centro=15 ancho=17 original=0xAFE2
+C|REVISAR Y BUSCAR
+C|
+C|TRAMPAS,PUERTAS
+C|
+C|   TESOROS
+zona|7|26|12|14|0x8079
+zona|12|21|14|16|0x80A9
+
+[VENT_B020] ventana y=2 centro=14 ancho=13 original=0xB020
+L|DESEAS ATACAR
+C|OTRA VEZ
+C|NO       SI
+zona|10|12|5|6|0x7453
+zona|19|21|5|6|0x745A
+
+[VENT_B058] ventana y=11 centro=16 ancho=10 original=0xB058
+C|DESEAS
+C|QUEDARTE
+L|CON EL ORO
+C|NO     SI
+zona|13|16|15|16|0x7453
+zona|20|23|15|16|0x745A
+
+[VENT_B084] ventana y=12 centro=15 ancho=11 original=0xB084
+L|DESEAS IR A
+L|POR MAS ORO
+C|NO    SI
+zona|13|15|15|16|0x7453
+zona|19|21|15|16|0x745A
+
+[VENT_B0B6] ventana y=11 centro=16 ancho=14 original=0xB0B6
+L|DESEAS DIVIDIR
+C|LA RECOMPENSA
+C|NO        SI
+zona|11|13|14|15|0x7453
+zona|21|23|14|15|0x745A
+
+[VENT_B0F1] ventana y=9 centro=15 ancho=19 original=0xB0F1
+C|DESEAS COGER 5000
+C|MONEDAS DE ORO. SI
+L|LAS COGES NO PODRAS
+C|ATACAR NI DEFENDER
+C|SI           NO
+zona|22|24|14|15|0x7453
+zona|9|11|14|15|0x745A
+
+[VENT_BB8E] ventana y=8 centro=15 ancho=15 original=0xBB8E
+L|TU HAS ESCAPADO
+C|DE LA MAZMORRA
+
+[VENT_BBB0] ventana y=13 centro=15 ancho=21 original=0xBBB0
+L|ERES RECOMPENSADO CON
+C|100 MONEDAS DE ORO
+
+[VENT_BBDE] ventana y=10 centro=15 ancho=25 original=0xBBDE
+L|TODO EL ORO ENCONTRADO EN
+L|LA MINA ES ORO FALSO
+
+[VENT_BC14] ventana y=10 centro=14 ancho=19 original=0xBC14
+L|EL ARMARIO CONTIENE
+L|UNA POCION CURATIVA
+L|Y 30 MONEDAS DE ORO
+
+[VENT_BC51] ventana y=10 centro=17 ancho=18 original=0xBC51
+C|EL COFRE CONTIENE
+L|100 MONEDAS DE ORO
+
+[VENT_BC79] ventana y=10 centro=15 ancho=19 original=0xBC79
+L|CADA COFRE CONTIENE
+C|100 MONEDAS DE ORO
+
+[VENT_BCA3] ventana y=10 centro=17 ancho=18 original=0xBCA3
+L|COFRE ESTABA VACIO
+
+[VENT_BCB9] ventana y=10 centro=15 ancho=19 original=0xBCB9
+C|EL COFRE CONTIENE
+L|UNA POCION CURATIVA
+L|Y 50 MONEDAS DE ORO
+
+[VENT_BCF6] ventana y=10 centro=16 ancho=18 original=0xBCF6
+C|EL COFRE TIENE LA
+L|VARA DE RECUERDO Y
+L|150 MONEDAS DE ORO
+
+[VENT_BD30] ventana y=6 centro=16 ancho=22 original=0xBD30
+C|EL COFRE CONTIENE
+C|UNA TRAMPA EXPLOSIVA
+C|PIERDES 1 PUNTO
+
+[VENT_BD76] ventana y=7 centro=15 ancho=17 original=0xBD76
+L|EL COFRE CONTIENE
+C|TRAMPA EXPLOSIVA
+C|TU LA DESACTIVAS
+
+[VENT_BDAD] ventana y=13 centro=16 ancho=16 original=0xBDAD
+L|ENCUENTRAS LANZA
+C|EN LA ARMERIA
+
+[VENT_BDD1] ventana y=13 centro=16 ancho=16 original=0xBDD1
+L|ENCUENTRAS LANZA
+L|PERO LA DESECHAS
+
+[VENT_BDF5] ventana y=13 centro=16 ancho=17 original=0xBDF5
+L|ENCUENTRAS ESCUDO
+C|EN LA ARMERIA
+
+[VENT_BE1B] ventana y=13 centro=16 ancho=17 original=0xBE1B
+L|ENCUENTRAS ESCUDO
+C|PERO LO DESECHAS
+
+[VENT_BE41] ventana y=9 centro=15 ancho=21 original=0xBE41
+L|LA GARGOLA ATACARA SI
+C|ABRES ESTE COFRE
+
+[VENT_BE6B] ventana y=9 centro=15 ancho=18 original=0xBE6B
+L|LA GARGOLA BROTA A
+L|LA VIDA Y TE ATACA
+
+[VENT_BE93] ventana y=8 centro=15 ancho=23 original=0xBE93
+C|EL COFRE CONTIENE 250
+L|MONEDAS DE ORO. TAMBIEN
+L|TE HACE IR MAS DESPACIO
+
+[VENT_BEDC] ventana y=9 centro=16 ancho=18 original=0xBEDC
+L|EL PRINCIPE MAGNUS
+C|TE RECOMPENSA CON
+L|200 MONEDAS DE ORO
+
+[VENT_BF16] ventana y=9 centro=15 ancho=23 original=0xBF16
+L|TU TE QUEDAS CON EL ORO
+L|PERO PUEDE QUE NUNCA
+L|LLEGUES A SER CAMPEON
+
+[VENT_BF5F] ventana y=9 centro=16 ancho=18 original=0xBF5F
+C|ENCUENTRAS LA
+C|LLAVE DE MELAR AL
+L|TOCARLA DESAPARECE
+
+[VENT_BF99] ventana y=9 centro=15 ancho=23 original=0xBF99
+L|ENCUENTRAS LA  ESPADA
+L|ESPIRITUAL EN EL CENTRO
+C|DE LA HABITACION
+
+[VENT_BFE2] ventana y=11 centro=16 ancho=14 original=0xBFE2
+C|ENCUENTRAS EL
+L|TALISMAN SABER
+
+[VENT_C002] ventana y=11 centro=15 ancho=25 original=0xC002
+C|HALLAS LA ARMADURA BORIN
+
+[VENT_C01F] ventana y=10 centro=15 ancho=15 original=0xC01F
+C|EL COFRE TIENE
+L|200 MONEDAS ORO
+
+[VENT_C041] ventana y=9 centro=15 ancho=24 original=0xC041
+C|EL ZOMBI QUE ESTA
+C|EN ESTA HABITACION ES
+C|KARLEN EL FUE CONSUMIDO
+R|POR UN HECHIZO CAOTICO
+C|QUE EL MISMO CREO
+
+[VENT_C0BD] ventana y=10 centro=15 ancho=21 original=0xC0BD
+C|ENCUENTRAS TU EQUIPO
+C|ESCONDIDO EN ESTA
+L|HABITACION.LO RECOGES
+
+[VENT_C100] ventana y=9 centro=16 ancho=22 original=0xC100
+C|HAS ROTO EL SELLO
+C|MAGICO EL GRAN BRUJO
+C|SE HA DESPERTADO SOLO
+L|LA  ESPADA  ESPIRITUAL
+C|PUEDE HACERLE DANO
+
+[VENT_C172] ventana y=9 centro=16 ancho=19 original=0xC172
+L|DE REPENTE EL TECHO
+L|SE CAE ENCIMA DE TI
+
+[VENT_C19C] ventana y=11 centro=16 ancho=22 original=0xC19C
+C|PIERDES 1 PUNTO
+
+# ===================== VENTANAS de la ampliacion Return of the Witch Lord (salas especiales 19 a 29; direccion original en la ampliacion)
+
+[VENT_B6EF] ventana y=10 centro=17 ancho=18 original=0xB6EF
+C|EL COFRE CONTIENE
+C|200 MONEDAS DE ORO
+
+[VENT_B717] ventana y=10 centro=17 ancho=18 original=0xB717
+C|EL COFRE CONTIENE
+C|250 MONEDAS DE ORO
+
+[VENT_B73F] ventana y=10 centro=17 ancho=18 original=0xB73F
+C|EL COFRE CONTIENE
+C|300 MONEDAS DE ORO
+
+[VENT_B767] ventana y=10 centro=17 ancho=18 original=0xB767
+C|EL COFRE CONTIENE
+C|350 MONEDAS DE ORO
+
+[VENT_B78F] ventana y=10 centro=15 ancho=19 original=0xB78F
+C|CADA COFRE CONTIENE
+C|200 MONEDAS DE ORO
+
+[VENT_B7B9] ventana y=9 centro=15 ancho=22 original=0xB7B9
+C|ENCUENTRAS 500 MONEDAS
+C|DE ORO EN UN HUECO
+C|BAJO EL TRONO
+
+[VENT_B805] ventana y=10 centro=15 ancho=20 original=0xB805
+C|EL COFRE CONTIENE
+C|UNA POCION CURATIVA
+C|Y 100 MONEDAS DE ORO
+
+[VENT_B842] ventana y=10 centro=16 ancho=22 original=0xB842
+C|EL COFRE CONTIENE
+C|DOS POCIONES CURATIVAS
+
+[VENT_B86E] ventana y=6 centro=16 ancho=22 original=0xB86E
+C|EL COFRE CONTIENE
+C|UNA TRAMPA EXPLOSIVA
+C|PIERDES 1 PUNTO CUERPO
+
+[VENT_B8B4] ventana y=7 centro=15 ancho=20 original=0xB8B4
+C|EL COFRE CONTIENE
+C|UNA TRAMPA EXPLOSIVA
+C|LA DESACTIVAS
+
+[VENT_B8EB] ventana y=8 centro=15 ancho=24 original=0xB8EB
+C|ENCUENTRAS LA LLAVE
+C|DE AGRAIN SOBRE EL BANCO
+C|VALE 100 MONEDAS DE ORO
+
+# ===================== GUIONES de la partida (0xA438-0xA476)
+
+[GUION_A438] guion original=0xA438
+07|L|2|21|ES EL TURNO DE MORCAR
+
+[GUION_A453] guion original=0xA453
+07|C|16|21|EL TURNO DE MORCAR SE TERMINO
+
+# ===================== GUIONES de la partida (0xA480-0xA4BB)
+
+[GUION_A484] guion original=0xA484
+03|L|0|0|{72}SIGMAR{73}
+
+[GUION_A48F] guion original=0xA48F
+05|L|0|0|{72}GRUGNI{73}
+
+[GUION_A49A] guion original=0xA49A
+02|L|0|0|{72}LADRIL{73}
+
+[GUION_A4A5] guion original=0xA4A5
+04|L|0|0|{72}ZOLTAN{73}
+
+[GUION_A4B0] guion original=0xA4B0
+06|L|0|0|{72}RAGNAR{73}
+
+# ===================== GUIONES de la partida (0xB1B0-0xB1C0)
+
+[GUION_B1B0] guion original=0xB1B0
+06|L|20|16|{72}         {73}
+
+# ===================== GUIONES de la partida (0xB5EF-0xB5F2)
+
+# ===================== GUIONES de la partida (0xB78E-0xBB0E)
+
+[GUION_B78E] guion original=0xB78E
+07|L|0|0|{0D}{09}
+02|L|2|0|POCIONES
+
+[GUION_B79E] guion original=0xB79E
+caja|14|0|18|7
+06|L|16|0|BUSQUEDA TESORO
+
+[GUION_B7B8] guion original=0xB7B8
+caja|0|9|13|9
+05|L|4|9|ARMAS
+
+[GUION_B7C8] guion original=0xB7C8
+caja|14|7|18|5
+03|L|19|7|HECHIZOS
+
+[GUION_B7DB] guion original=0xB7DB
+caja|14|12|12|6
+45|L|16|12|ARMADURA
+
+[GUION_B7EE] guion original=0xB7EE
+caja|14|7|18|11
+03|L|19|7|HECHIZOS
+
+[GUION_B801] guion original=0xB801
+caja|0|9|13|3
+05|L|4|9|ARMA
+
+[GUION_B810] guion original=0xB810
+07|L|1|18|UTILIZA CAJA
+
+[GUION_B822] guion original=0xB822
+05|L|15|18|SALIDA
+
+[GUION_B82E] guion original=0xB82E
+06|L|20|18|ORO MAGNUS
+
+[GUION_B83E] guion original=0xB83E
+06|L|20|18|DEJA CAER ORO
+
+[GUION_B851] guion original=0xB851
+06|C|16|21|ARMA
+06|L|23|21|CANCELAR
+
+[GUION_B866] guion original=0xB866
+03|L|6|8|ENEMIGO TE HIERE
+
+[GUION_B87C] guion original=0xB87C
+06|L|0|8|EL ATAQUE ENEMIGO SIN EXITO
+
+[GUION_B89F] guion original=0xB89F
+06|C|16|8|HAS MATADO AL ENEMIGO
+
+[GUION_B8BA] guion original=0xB8BA
+03|L|7|8|TU ATAQUE NO TIENE EXITO
+
+[GUION_B8D8] guion original=0xB8D8
+05|C|16|10|NO PUEDES VER A TU ENEMIGO
+03|L|7|12|EL ATAQUE HA FRACASADO
+
+[GUION_B913] guion original=0xB913
+06|L|1|10|ESTAS MUY LEJOS PARA ATACAR
+
+[GUION_B934] guion original=0xB934
+03|C|16|10|NO PUEDES USAR LA BALLESTA
+03|C|16|12|ESTANDO TAN CERCA
+
+[GUION_B968] guion original=0xB968
+06|L|1|20|DESACTIVAS LA TRAMPA
+
+[GUION_B982] guion original=0xB982
+03|L|1|20|LA TRAMPA SE ACTIVA
+03|L|1|21|PIERDES 1 DE TUS PUNTOS
+
+[GUION_B9B7] guion original=0xB9B7
+06|C|16|20|EL ORO DESAPARECE Y VUELVE A
+06|L|11|21|LA MINA
+
+[GUION_B9E3] guion original=0xB9E3
+06|C|16|21|ENCUENTRAS LA ESPADA BANE DE ORC
+
+[GUION_BA09] guion original=0xBA09
+06|C|16|21|ENCUENTRAS LA ESTRELLA DEL OESTE
+
+[GUION_BA2F] guion original=0xBA2F
+06|C|16|20|HAN DESTRUIDO EL AGUA SAGRADA
+06|L|1|21| 
+03|L|2|21|  
+06|L|4|21|MONSTRUO VIVO
+
+[GUION_BA6A] guion original=0xBA6A
+04|C|16|20|EL AGUA SAGRADA NO TIENE EFECTO
+
+[GUION_BA8F] guion original=0xBA8F
+06|L|1|20|EL HECHIZO TIENE EFECTO
+
+[GUION_BAAC] guion original=0xBAAC
+06|L|3|21|EL HECHIZO SE DESVIO
+
+[GUION_BAC6] guion original=0xBAC6
+03|L|0|21|EL HECHIZO INFLIGE 1 PUNTO
+
+[GUION_BAEA] guion original=0xBAEA
+03|L|0|21|HECHIZO INFLIGE   2 PUNTOS
+
+# ===================== GUIONES de la partida (0xBB18-0xBB8E)
+
+[GUION_BB18] guion original=0xBB18
+07|C|16|10|EL BARBARO HA MUERTO
+
+[GUION_BB30] guion original=0xBB30
+07|C|16|10|EL ENANO HA MUERTO
+
+[GUION_BB46] guion original=0xBB46
+07|L|8|10|EL ELFO HA MUERTO
+
+[GUION_BB5D] guion original=0xBB5D
+07|C|16|10|EL MAGO HA MUERTO
+
+[GUION_BB77] guion original=0xBB77
+07|C|16|10|EL RAGNAR HA MUERTO
+
+# ===================== GUIONES de la ampliacion Return of the Witch Lord (arma rota y niebla de la muerte)
+
+[GUION_B4F4] guion original=0xB4F4
+05|C|16|14|SU ARMA ESTA ROTA
+
+[GUION_B47A] guion original=0xB47A
+03|C|16|20|LA NIEBLA DE LA MUERTE ATACA.
+03|C|16|21|PIERDES 1 PUNTO CORPORAL
+
+# ===================== GUIONES del menu (overlay, 0x6561-0x65D5)
+
+[MENU_6561] guion original=0x6561
+07|L|0|18|INSERTA EL LUGAR
+07|C|16|19|PULSA RECORD Y FIRE PARA GUARDAR
+
+[MENU_659A] guion original=0x659A
+07|L|0|18|INSERTA EL LUGAR Y PULSA PLAY
+
+[MENU_65BD] guion original=0x65BD
+07|L|16|19|TYPE
+
+[MENU_65CC] guion original=0x65CC
+07|L|0|19|FILE
+
+# ===================== GUIONES del menu (overlay, 0x65E2-0x65EC)
+
+[MENU_65E2] guion original=0x65E2
+03|L|5|19|TESTE
+
+# ===================== GUIONES del menu (overlay, 0x6653-0x6B1A)
+
+[MENU_6653] guion original=0x6653
+06|C|16|0|HEROQUEST
+
+[MENU_6662] guion original=0x6662
+03|C|16|4|JUGAR
+03|C|16|5|COMPRAR EQUIPO
+03|C|16|6|CREAR PERSONAJE
+03|C|16|7|CONTROLES
+03|C|16|8|CARGAR OTRAS AVENTURAS
+
+[MENU_66B6] guion original=0x66B6
+06|C|16|10|TODOS LOS JUGADORES MUERTOS
+06|C|16|12|CREA JUGADORES NUEVOS
+
+[MENU_66F5] guion original=0x66F5
+05|L|0|4|HECHIZOS AIRE
+
+[MENU_670B] guion original=0x670B
+46|L|16|4|HECHIZOS FUEGO
+
+[MENU_6722] guion original=0x6722
+42|L|0|12|HECHIZOS TIERRA
+
+[MENU_673A] guion original=0x673A
+45|L|16|12|HECHIZOS AGUA
+
+[MENU_6750] guion original=0x6750
+07|L|0|0|ELFO
+
+[MENU_6757] guion original=0x6757
+07|L|0|0|MAGO
+
+[MENU_6761] guion original=0x6761
+04|L|0|5|GENIO
+04|L|0|6|TEMPESTAD
+04|L|0|7|HURACAN
+04|L|16|5|VALOR
+04|L|16|6|COLERA DE FUEGO
+04|L|16|7|BOLA DE FUEGO
+04|L|0|13|PIEL DE ROCA
+04|L|0|14|SANAR HERIDAS
+04|L|0|15|ATRAVESAR MUROS
+04|L|16|13|DORMIR
+04|L|16|14|VELO DE NIEBLA
+04|L|16|15|AGUAS CURATIVAS
+
+[MENU_680C] guion original=0x680C
+03|L|0|0|ELFO
+03|L|0|1|ELIGE TU GRUPO DE HECHIZOS
+
+[MENU_683C] guion original=0x683C
+04|L|0|0|MAGO
+04|C|16|1|ELIGE TUS PRIMEROS HECHIZOS
+
+[MENU_686A] guion original=0x686A
+04|L|0|0|MAGO
+04|C|16|1|ELIGE TUS 3 GRUPOS DE HECHIZOS
+
+[MENU_69E2] guion original=0x69E2
+caja|0|12|32|9
+42|L|0|2|BARBARO
+42|L|0|3|ENANO
+42|L|0|4|ELFO
+42|L|0|5|MAGO
+42|L|0|6|FINAL
+07|L|13|13|100
+07|L|13|14|150
+07|L|13|15|250
+07|L|13|16|400
+07|L|13|17|350
+07|L|13|18|150
+07|L|13|19|150
+07|L|28|13|100
+07|L|28|14|120
+07|L|28|15|450
+07|L|28|16|850
+07|L|28|17|250
+05|L|1|12|ARMAS
+05|L|11|12|VALOR
+05|L|17|12|ARMADURA
+05|L|26|12|VALOR
+05|L|17|19|FINAL
+
+[MENU_6A92] guion original=0x6A92
+04|L|17|17|CAJA
+
+[MENU_6A9C] guion original=0x6A9C
+03|L|22|7|CAJA
+
+[MENU_6AA6] guion original=0x6AA6
+06|L|25|19|{3C}=
+
+[MENU_6AB2] guion original=0x6AB2
+07|L|5|0|ELIGE JUGADOR
+
+[MENU_6AC5] guion original=0x6AC5
+03|L|4|4|BARBARO
+
+[MENU_6AD2] guion original=0x6AD2
+05|L|4|7|ENANO
+
+[MENU_6ADD] guion original=0x6ADD
+02|L|4|10|ELFO
+
+[MENU_6AE9] guion original=0x6AE9
+04|L|4|13|MAGO
+
+[MENU_6AF8] guion original=0x6AF8
+07|L|4|16|FINAL
+
+[MENU_6B03] guion original=0x6B03
+07|C|16|19|      
+
+[MENU_6B0F] guion original=0x6B0F
+07|L|1|0|MUERTO
+
+# ===================== GUIONES del menu (overlay, 0x6B2A-0x6C1B)
+
+[MENU_6B3A] guion original=0x6B3A
+07|L|3|10|INSERTA EL LUGAR Y PULSA FIRE
+
+[MENU_6B5D] guion original=0x6B5D
+06|L|0|21|NOMBRE JUGADOR
+06|L|16|21|CARGAR
+
+[MENU_6B7A] guion original=0x6B7A
+06|L|24|21|GUARDAR
+
+[MENU_6B87] guion original=0x6B87
+06|L|3|10|JUGADOR ES UN
+
+[MENU_6B9B] guion original=0x6B9B
+42|C|16|21|ABCDEFGHIJKLMNOPQRSTUVWXYZ {73} OK
+
+[MENU_6BC0] guion original=0x6BC0
+06|C|16|2|ELEGIR LOS CONTROLES
+03|L|6|5|1.KEMPSTON OFF
+04|L|6|6|2.MUSIC ON
+02|L|6|7|3.MANUSCRITO
+05|L|6|9|0.SALIDA
+
+# ===================== TABLAS DE CADENAS
+
+[NOMBRES_HEROE] cadenas campo=9 alineacion=C original=0x7837 ; se muestran en el panel y en las ventanas
+BARBARO
+ENANO
+ELFO
+MAGO
+RAGNAR
+
+[NOMBRES_MONSTRUO] cadenas campo=9 alineacion=C original=0xB54B 
+GOBLIN
+ORCO
+FIMIR
+GUERRERO
+ESQUELETO
+ZOMBIE
+MOMIA
+HECHICERO
+ULAG
+GRAK
+BALUR
+GRANBRUJO
+GRANBRUJO
+
+[NOMBRES_OBJETO] cadenas campo=9 alineacion=C original=0xB5F2 ; muebles, trampas, salida, etc.
+-
+BLOQUEADA
+TRAMPA
+SALIDA
+COFRE
+TRONO
+MESA
+HECHIZOS
+ESTANTE
+TUMBA
+BANCO
+CHIMENEA
+ARMARIO
+ESTANTE
+ARMERIA
+
+[POCIONES_NOMBRE] cadenas campo=10 alineacion=L original=0xAE7B ; 6 nombres de campo fijo
+VELOCIDAD
+SALUD
+FUERZA
+RESISTENCI
+HEROICIDAD
+AGUA SANTA
+
+[POCIONES_DESCRIPCION] cadenas campo=29 alineacion=L original=0xAEB7 ; 6 descripciones de campo fijo
+DUPLICATU NUMERO MOVIMIENTOS
+RESTAURA 4 DE TUS PUNTOS
+AUMENTA TU FUERZA DE ATAQUE
+AUMENTA TU FUERZA DE DEFENSA
+PERMITE 2 ATAQUES POR JUGADA
+MATA      TODA CRIATURA VIVA
+
+[PANEL_EFECTOS] cadenas campo=11 alineacion=L original=0x9739 ; textos del panel de estado (se dibujan a partir de una posicion fija)
+FUERZA
+RESISTENCIA
+CURACION
+CURACION
+AGUA SANTA
+VELOCIDAD
+HEROICO
+
+[PANEL_OBJETOS] cadenas campo=16 alineacion=L original=0x9781 
+ARMADURA BORIN
+VARA DE RECUERDO
+TALISMAN SABER
+BARA DE ORC
+ESPADA SPIRITUAL
+
+[PANEL_ARMAS] cadenas campo=10 alineacion=L original=0x97D7 ; la ultima entrada esta vacia en el original
+BASTON
+DAGA
+ESPADA
+GRAN HACHA
+BALLESTA
+HACHA
+LANZA
+-
+
+[PANEL_ARMADURAS] cadenas campo=8 alineacion=L original=0x982A 
+ESCUDO
+CASCO
+MALLA
+ARMADURA
+
+[PANEL_HECHIZOS_B] cadenas campo=15 alineacion=L original=0x9853 
+VELO NIEBLA
+AGUAS CURATIVAS
+DORMIR
+TEMPESTAD
+HURACAN
+GENIO
+
+[PANEL_HECHIZOS_C] cadenas campo=13 alineacion=L original=0x98A0 
+CORAGE
+BOLA DE FUEGO
+FUEGO DE IRA
+CRUZAR MUROS
+PIEL DE ROCA
+SANAR CUERPO
+
+[POCIONES_INDICES] indices original=0xAE5F ; por cada pocion: indice de nombre e indice de descripcion (no son texto)
+0|0
+1|1
+1|1
+2|2
+3|3
+4|4
+5|5

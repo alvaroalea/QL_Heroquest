@@ -18,14 +18,14 @@ static int puerta_a[16][3], puerta_b[8][3];              /* 0xB72B, 0xB76B: dy, 
 static int mueble[17][5];                                /* 0x88A0 */
 static int base[17][3];                                  /* 0x9470 */
 static int suelos[16];                                   /* 0xC342 */
-static int c35a[64], ico_heroe[5], ico_mons[14], ico_obj[16], cte[4];
+static int c35a[64], ico_heroe[5], ico_obj[16], cte[4];
 static int borra[22][2];
-static int vecinas[52], zonas[10][5], guiones[52][4], movcte[9], teleport[11][4], nombre_obj[44], oro_carta[9], pocion[7][3], emboscada[4][2], arma_tab[7], monstruo_tab[20][7], contacto[8][2], panel_zona[10][4], panel_mascara[8], hechizo_blanco[12];
+static int vecinas[52], zonas[10][5], guiones[52][4], movcte[9], teleport[11][4], nombre_obj[44], oro_carta[9], pocion[7][3], emboscada[4][2], arma_tab[7], contacto[8][2], panel_zona[10][4], panel_mascara[8], hechizo_blanco[12];
 static int win_grid[5][6], win_off[30];                  /* B6E7 y B6AC: casilla de la ventana -> numero de casilla y desplazamiento en el mapa */
 
 static const u8 *pk_spr, *pk_esc, *baldosas, *marca;
 static u8 *pool, *pool2, *back;                          /* fondos guardados bajo las figuras; el segundo juego y el buffer de composicion de vista_figuras_refrescar */
-#define POOL_MAX 20000L
+#define POOL_MAX 12000L                                  /* la sala inicial mas cargada (Witch Lord, mision 9) guarda 5.384 bytes de fondos */
 
 #define ESC_PARED_OESTE 0
 #define ESC_PARED_NORTE 1
@@ -78,7 +78,6 @@ int vista_datos(const u8 *sprites, const u8 *escenario, const u8 *vista, const u
     leer_sec(vista, 6, 16, 1, suelos);
     leer_sec(vista, 7, 64, 1, c35a);
     leer_sec(vista, 8, 5, 1, ico_heroe);
-    leer_sec(vista, 9, 14, 1, ico_mons);
     leer_sec(vista, 10, 16, 1, ico_obj);
     leer_sec(vista, 11, 4, 1, cte);
     leer_sec(vista, 12, 22, 2, &borra[0][0]);
@@ -92,7 +91,6 @@ int vista_datos(const u8 *sprites, const u8 *escenario, const u8 *vista, const u
     leer_sec(vista, 21, 7, 3, &pocion[0][0]);
     leer_sec(vista, 22, 4, 2, &emboscada[0][0]);
     leer_sec(vista, 23, 7, 1, arma_tab);
-    leer_sec(vista, 24, 20, 7, &monstruo_tab[0][0]);
     leer_sec(vista, 25, 8, 2, &contacto[0][0]);
     leer_sec(vista, 26, 10, 4, &panel_zona[0][0]);
     leer_sec(vista, 27, 8, 1, panel_mascara);
@@ -175,21 +173,17 @@ void vista_entrar_sala(Partida *p, int sala)                      /* 0x8923 */
     p->v.origen_x = (u8)x0; p->v.origen_y = (u8)y0; p->v.ancla = (u8)anc;
     if (*fl) { p->v.sala_nueva = (u8)~*fl; return; }
     p->v.sala_nueva = 0xFF;
-    switch (p->mision) {
-    case 1:
-        if (sala == 0x16) {            /* se encuentra a Sir Ragnar: todo el mapa a la vista y los monstruos ya no estan ocultos */
-            p->pers[4].estado = 1;
-            p->v.heroe_evento = p->v.pers_actual;
-            for (i = 0; i < MAP_P; i++) p->capa_a[i] |= 0xC0;
-            for (i = 0; i < N_MONS; i++) p->mons[i].estado &= 0x7F;
-        }
-        *fl = 0xFF;
-        break;
-    case 5:  if (sala == 0x1D) { p->v.evento_mision = 1; break; } *fl = 0xFF; break;
-    case 9:  if (sala == 0x18) { p->v.evento_mision = 1; break; } *fl = 0xFF; break;
-    case 11: if (sala == 0x1F) { p->v.evento_mision = 1; break; } *fl = 0xFF; break;
-    default: *fl = 0xFF; break;
+    if ((p->ev & EV_RAGNAR) && sala == 0x16) {            /* se encuentra a Sir Ragnar: todo el mapa a la vista y los monstruos ya no estan ocultos */
+        p->pers[4].estado = 1;
+        p->v.heroe_evento = p->v.pers_actual;
+        for (i = 0; i < MAP_P; i++) p->capa_a[i] |= 0xC0;
+        for (i = 0; i < N_MONS; i++) p->mons[i].estado &= 0x7F;
     }
+    if (((p->ev & EV_SIN_EQUIPO) && sala == 0x1D) || ((p->ev & EV_CASTILLO) && sala == 0x18) || ((p->ev & EV_CIERRE) && sala == 0x1F)) {
+        p->v.evento_mision = 1;                            /* la sala dispara el evento de la mision (mision_evento) y no se marca como visitada */
+        return;
+    }
+    *fl = 0xFF;
 }
 
 static void marcar_vista(Partida *p, int c)                        /* 0x98F6: la casilla a la vista en el plano y en 3D, y las contiguas en 3D */
@@ -298,7 +292,7 @@ static void objetos(Partida *p, int c, int tile)
     if (v < 0x30) {                                                /* monstruo: el sprite es su tipo */
         a = anim_libre();
         a->estado = 1; a->tipo = 2;
-        anim_grafico(a, 0, p->mons[v - 1].tipo);
+        anim_grafico(a, 0, partida_tipo(p, p->mons[v - 1].tipo)->sprite);
         anim_posicion(a, tile);
         return;
     }
@@ -373,7 +367,7 @@ int vista_tile_de(const Partida *p, int col, int fila)
 
 void vista_actualizar_heroes(Partida *p)                           /* 0x8791 y 0x87CB */
 {
-    int i, n = p->mision == 1 ? 5 : 4, tile;
+    int i, n = (p->ev & EV_RAGNAR) ? 5 : 4, tile;
     for (i = 0; i < n; i++) {
         Pers *r = &p->pers[i];
         Anim *a = &vz_anim[i == 4 ? 13 : i];
@@ -396,7 +390,6 @@ int vista_ventana_off(int t) { return win_off[t]; }
 const int *vista_zonas(void) { return &zonas[0][0]; }
 
 int vista_arma(int i) { return arma_tab[i]; }
-const int *vista_monstruo(int tipo) { return monstruo_tab[tipo]; }
 void vista_contacto(int i, int *dx, int *dy) { *dx = contacto[i][0]; *dy = contacto[i][1]; }
 const int *vista_panel_zona(int i) { return panel_zona[i]; }
 int vista_panel_mascara(int i) { return panel_mascara[i]; }
@@ -562,7 +555,7 @@ void vista_calcular_vista(Partida *p, int pers)                    /* 0xA2E1 (y 
     Pers *r = &p->pers[pers];
     int col = r->col, k, cols[2], n = 1;
     void (*dir[4])(Partida *, int, int);
-    if (p->mision == 9) return;
+    if (p->ev & EV_CASTILLO) return;
     dir[0] = ver_norte; dir[1] = ver_sur; dir[2] = ver_oeste; dir[3] = ver_este;    /* el orden del original: 0xA326, 0xA344, 0xA363 y 0xA37E */
     cols[0] = col;
     if (col == 0x0C) { cols[0] = 0x0C; cols[1] = 0x0D; n = 2; }
@@ -768,7 +761,7 @@ static void celda_or(u8 *buf, int cx, int cy, const u8 *t)        /* 0x945C */
     for (l = 0; l < 8; l++) buf[(cy * 8 + l) * 32 + cx] |= t[l];
 }
 
-static const u8 *baldosa(int i) { return i == 32 ? marca : baldosas + i * 8; }
+static const u8 *baldosa(int i) { return i == 32 ? marca : (i == 33 ? marca + 8 : baldosas + i * 8); }      /* 32 = marca del personaje activo, 33 = voluta de la niebla (marca_activo_bin) */
 
 static void pieza_mueble(u8 *buf, int cx, int cy, int i)          /* 0x93EF: la pieza base de un mueble, con OR, desplazada */
 {
@@ -805,7 +798,7 @@ void vista_plano_buffer(const Partida *p, u8 *buf, u8 *attr)       /* DIBUJAR_MA
                 celda_copia(buf, cx, cy, baldosa(c35a[p->capa_b[c] >> 2]));
                 v = p->capa_c[c];
                 if (!v) continue;
-                if (v < 0x30) celda_or(buf, cx, cy, baldosa(p->v.marcas ? 32 : ico_mons[p->mons[v - 1].tipo % 14]));
+                if (v < 0x30) celda_or(buf, cx, cy, baldosa(p->v.marcas ? 32 : partida_tipo(p, p->mons[v - 1].tipo)->icono));
                 else if (v < 0x40) { if (v >= 0x32 && p->v.marcas) continue; celda_or(buf, cx, cy, baldosa(ico_obj[v - 0x30])); }
                 else if (v < 0x42) celda_or(buf, cx, cy, baldosa(v == 0x41 ? cte[1] : cte[0]));
                 else if (v >= 0x4B) pieza_mueble(buf, cx, cy, v - 0x4B);

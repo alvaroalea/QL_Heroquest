@@ -1,0 +1,102 @@
+# Mision 11 de Hero Quest (original ZX 128K ingles: banco 3, 0xDD46) - generado por tools/hq_misiones_extraer.py
+# EDITAR LA COPIA de asset/misiones_ql/misionNN.en.txt (este fichero se regenera). Formato y significado de los campos en docs/ZX_DATOS_QL.md.
+
+mision 11
+nombre BARAK TOR, HOME OF THE WITCHLORD
+# eventos: banderas de comportamiento (numeros de bit; cada bit repite lo especial de esa mision de Hero Quest, ver docs/ZX_MISIONES.md):
+#   0 solo el primero que sale cobra 100 | 1 Sir Ragnar | 3 oro de Magnus | 4 roca | 5 sin equipo ni hechizos | 6 cada heroe que sale cobra 100 | 7 sin hechizos de fuego | 9 castillo | 11 sala que se cierra
+eventos 11
+
+# heroes: indice|columna|fila|grafico inicial (se asigna a los 4 heroes en orden: barbaro, enano, elfo, hechicero)
+heroe 0|23|12|17
+heroe 1|23|11|29
+heroe 2|22|12|44
+heroe 3|22|13|56
+
+[mapa] 26 columnas x 19 filas, cada casilla AA.BB (capa A . capa B) en hexadecimal
+00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00
+00.00 00.00 00.00 00.00 00.00 16.C0 16.80 16.80 16.80 17.C0 17.80 17.80 03.C0 03.80 18.C0 18.80 18.80 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00
+00.00 00.00 00.00 00.00 00.00 16.40 16.00 16.00 16.00 17.40 17.00 17.00 03.10 03.00 18.40 18.00 18.00 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00
+00.00 00.00 00.00 00.00 00.00 16.40 16.00 16.00 16.00 17.40 17.00 17.00 03.40 03.00 18.18 18.00 18.00 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00
+00.00 00.00 00.00 00.00 00.00 1C.C0 1C.20 1C.80 1C.80 17.40 17.00 17.00 03.40 03.00 18.40 18.00 18.00 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00
+00.00 00.00 00.00 00.00 00.00 1C.40 1C.00 1C.00 1C.00 17.10 17.00 17.00 08.40 08.00 18.40 18.00 18.00 1D.90 1D.80 1D.80 1D.80 00.40 00.00 00.00 00.00 00.00
+00.00 00.00 00.00 00.00 00.00 1C.40 1C.00 1C.00 1C.00 07.C0 08.28 08.80 08.00 08.00 08.81 08.81 09.80 1D.40 1D.00 1D.00 1D.00 00.40 00.00 00.00 00.00 00.00
+00.00 00.00 00.00 00.00 00.00 1C.40 1C.00 1C.00 1C.00 07.40 1F.C0 1F.80 1F.80 1F.80 1F.80 1F.80 09.40 1D.10 1D.00 1D.00 1D.00 00.40 00.00 00.00 00.00 00.00
+00.00 00.00 00.00 00.00 00.00 1C.40 1C.00 1C.00 1C.00 07.40 1F.40 1F.00 1F.00 1F.00 1F.00 1F.00 09.10 1D.40 1D.00 1D.00 1D.00 00.40 00.00 00.00 00.00 00.00
+06.C0 06.80 06.80 06.80 07.80 07.80 07.80 07.80 07.80 07.00 1F.40 1F.00 1F.00 1F.00 1F.00 1F.00 09.40 00.C0 00.80 00.80 00.80 00.00 00.00 00.00 00.00 00.00
+0B.40 00.C0 00.80 00.80 00.80 00.80 00.80 00.80 00.80 0C.40 1F.40 1F.00 1F.00 1F.00 1F.00 1F.00 0E.40 23.C0 23.80 23.80 23.80 24.C0 24.80 24.80 24.80 00.40
+0B.40 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 0C.40 1F.40 1F.00 1F.00 1F.00 1F.00 1F.00 0E.40 23.10 23.00 23.00 23.00 24.40 24.00 24.00 24.00 0F.C0
+0B.40 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 0C.40 0D.28 0D.80 0D.80 0D.80 0D.80 0D.80 0E.00 23.40 23.00 23.00 23.00 24.18 24.00 24.00 24.00 0F.10
+0B.40 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.80 00.80 00.80 0D.41 0D.00 28.90 28.80 28.80 28.80 23.41 23.00 23.00 24.40 24.00 24.00 24.00 0F.40
+0B.40 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 0D.41 0D.00 28.40 28.00 28.00 28.00 29.C0 29.80 29.80 00.C0 00.80 00.80 00.80 0F.40
+10.40 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 12.40 12.00 28.40 28.00 28.00 28.00 29.40 29.00 29.00 00.40 00.00 00.00 00.00 14.40
+10.40 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 12.40 12.00 28.40 28.00 28.00 28.00 29.40 29.00 29.00 00.40 00.00 00.00 00.00 14.40
+10.40 00.40 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 00.00 12.40 12.00 28.40 28.00 28.00 28.00 29.40 29.00 29.00 00.40 00.00 00.00 00.00 14.40
+10.40 10.81 10.81 10.81 11.80 11.80 11.80 11.80 11.80 11.80 12.80 12.80 12.00 12.00 12.81 12.21 13.80 13.80 13.80 13.20 13.80 13.80 14.80 14.80 14.80 14.00
+
+[indicadores] 86 bytes iniciales (se copian a 0x6BB6 del original): marcas de habitaciones, cofres y puertas ya usados
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+
+[monstruos] estado|columna|fila|b3|b4|b5|b6|b7|tipo|estadistica   (10 bytes del original; b3-b5 los pone el juego)
+monstruo|0|0|0|0|0|0|1|16|4|4
+monstruo|129|12|7|0|0|0|1|20|11|11
+monstruo|129|6|1|0|0|0|1|16|5|5
+monstruo|129|10|2|0|0|0|1|16|5|5
+monstruo|129|15|2|0|0|0|1|16|4|4
+monstruo|129|10|4|0|0|0|1|16|4|4
+monstruo|129|6|5|0|0|0|1|16|4|4
+monstruo|129|7|5|0|0|0|1|16|5|5
+monstruo|129|7|6|0|0|0|1|16|4|4
+monstruo|129|19|6|0|0|0|1|16|4|4
+monstruo|129|18|11|0|0|0|1|20|7|7
+monstruo|129|15|15|0|0|0|1|16|5|5
+monstruo|129|16|15|0|0|0|1|16|5|19
+monstruo|129|19|16|0|0|0|1|16|6|6
+
+[objetos] columna|fila|codigo   (codigos de la capa de objetos: 0x30-0x5B; el nombre es solo orientativo)
+objeto|12|5|48 ; 0x30 blocked
+objeto|13|5|48 ; 0x30 blocked
+objeto|16|9|48 ; 0x30 blocked
+objeto|25|11|48 ; 0x30 blocked
+objeto|11|12|48 ; 0x30 blocked
+objeto|12|16|48 ; 0x30 blocked
+objeto|13|16|48 ; 0x30 blocked
+objeto|17|18|48 ; 0x30 blocked
+objeto|13|14|50 ; 0x32 
+objeto|9|10|52 ; 0x34 
+objeto|6|6|54 ; 0x36 
+objeto|17|6|54 ; 0x36 
+objeto|16|10|54 ; 0x36 
+objeto|21|10|56 ; 0x38 exit
+objeto|21|11|57 ; 0x39 exit
+objeto|22|10|58 ; 0x3A exit
+objeto|22|11|59 ; 0x3B exit
+objeto|11|8|69 ; 0x45 tomb
+objeto|12|8|69 ; 0x45 tomb
+objeto|13|8|69 ; 0x45 tomb
+objeto|11|9|69 ; 0x45 tomb
+objeto|12|9|69 ; 0x45 tomb
+objeto|13|9|83 ; 0x53 tomb
+
+[objetivo] texto de presentacion: atributo(hex)|alineacion(L/C/R)|columna|fila|texto
+03|C|16|0|BARAK TOR, HOME OF THE WITCHLORD
+06|C|16|2|WAR WITH THE EASTERN ORCS IS
+06|C|16|3|BREWING AND THE EMPEROR NEEDS TO
+06|C|16|4|UNITE THE LESSER KINGDOMS FOR
+06|C|16|5|THE CONFLICT TO COME.TO DO THIS
+06|C|16|6|HE MUST FIND THE ANCIENT STAR OF
+06|C|16|7|THE WEST AS WORN BY THE KINGS OF
+06|C|16|8|LEGEND AND BY ROGAR WHEN HE
+06|C|16|9|BATTLED WITH MORCAR IN AGES PAST
+06|C|16|10|ANYONE WHO FINDS THE GEM WILL BE
+06|C|16|11|GIVEN 200 GOLD COINS.THE GEM
+06|C|16|12|LIES IN BARAK TOR,THE RESTING
+06|C|16|13|PLACE OF THE WITCHLORD.HE WAS
+06|C|16|14|ALSO KNOWN AS THE KING OF THE
+06|C|16|15|DEAD,A POWERFUL SERVANT OF
+06|C|16|16|MORCAR,AND WAS DESTROYED BY THE
+06|C|16|17|SPIRIT BLADE LONG AGO.IT IS THE
+06|C|16|18|ONLY WEAPON THAT CAN HARM HIM.

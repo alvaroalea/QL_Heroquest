@@ -42,21 +42,41 @@ static int repetir(int *cnt)
     return n;
 }
 
+/* Raton: posicion absoluta en puntos de pantalla (una cuenta = un punto), sin aceleracion; el cursor es esa posicion redondeada a su
+   rejilla (4 puntos en X, 2 en Y). Si las teclas movieron el cursor, el raton sigue desde donde quedo. */
+static int m_x, m_y, m_cx = -1, m_cy;
+/* En vertical el raton recorre las 256 lineas (el sprite entero dentro de la pantalla: su linea superior es VISTA_Y + cur_y - CUR_H);
+   las teclas siguen con los limites del original (0x0A a 0xAE) */
+#define MY_MIN  (CUR_H - VISTA_Y)
+#define MY_MAX  (SCR_H - VISTA_Y)
+
+static void mover_raton(void)
+{
+    int dx, dy;
+    plat_raton_delta(&dx, &dy);
+    if (m_cx != cur_x || m_cy != cur_y) { m_x = cur_x; m_y = cur_y; }
+    m_x += dx; m_y += dy;
+    if (m_x < 0x10) m_x = 0x10;
+    if (m_x > 0xFC) m_x = 0xFC;
+    if (m_y < MY_MIN) m_y = MY_MIN;
+    if (m_y > MY_MAX) m_y = MY_MAX;
+    cur_x = 0x10 + ((m_x - 0x10 + 2) & ~3);
+    cur_y = 0x0A + ((m_y - 0x0A + 1) & ~1);
+    if (cur_x > 0xFC) cur_x = 0xFC;
+    if (cur_y > MY_MAX) cur_y = MY_MAX;
+    m_cx = cur_x; m_cy = cur_y;
+}
+
 void cursor_move(u16 keys)
 {
     int n;
+    if (plat_raton != RAT_CURSORES) mover_raton();
     if (keys & K_RIGHT) { for (n = repetir(&cnt_h); n > 0; n--) paso_x(1); }
     else if (keys & K_LEFT) { for (n = repetir(&cnt_h); n > 0; n--) paso_x(-1); }
     else cnt_h = 0;
     if (keys & K_UP) { for (n = repetir(&cnt_v); n > 0; n--) paso_y(-1); }
     else if (keys & K_DOWN) { for (n = repetir(&cnt_v); n > 0; n--) paso_y(1); }
     else cnt_v = 0;
-}
-
-void cursor_cell(int *col, int *row)
-{
-    *col = (cur_x - 12) >> 3;
-    *row = (cur_y - 2) >> 3;
 }
 
 int cursor_dibujado(void) { return fok; }

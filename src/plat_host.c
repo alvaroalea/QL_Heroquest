@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200112L
 /* Backend de pruebas en PC: el buffer tiene el mismo formato que la pantalla del QL. Las teclas vienen de un guion
    (variable de entorno HQ_KEYS o fichero keys.txt): fichas separadas por espacios, una por pulsacion (se mantiene 2 cuadros
    y se suelta 2; con el sufijo xN se mantiene N cuadros: Rx20): U D L R arriba, abajo, izquierda, derecha; F disparo; E escape; 0 1 2 3 4; '.' = esperar; Sxx = guardar la
@@ -8,10 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <dirent.h>
 
 static u8 buf[SCR_BYTES];
 u8 *screen = buf;
-u8 plat_cursores = 1;
+u8 plat_raton = RAT_CURSORES;
 u8 plat_tecla4 = 0;
 static char script[4096];
 static int spos = 0, hold = 0, rest = 0;
@@ -26,6 +28,10 @@ void plat_init(void)
     if (e) { strncpy(script, e, sizeof(script) - 1); script[sizeof(script) - 1] = 0; }
     else if ((f = fopen("keys.txt", "r")) != NULL) { size_t n = fread(script, 1, sizeof(script) - 1, f); script[n] = 0; fclose(f); }
 }
+int plat_raton_auto(void) { return RAT_CURSORES; }
+int plat_raton_ok(int modo) { (void)modo; return 0; }
+int plat_raton_estado(void) { return 0; }
+void plat_raton_delta(int *dx, int *dy) { *dx = *dy = 0; }
 void plat_shutdown(void) {}
 void plat_flush_input(void) {}
 void plat_exit(void) { exit(0); }
@@ -33,6 +39,22 @@ void plat_wait_key(void) {}
 int plat_default_dir(int prog, char *b, int max) { (void)prog; (void)max; b[0] = 0; return 0; }
 const char *plat_data_dir(void) { const char *e = getenv("HQ_DATA"); return e ? e : "data/"; }
 unsigned long plat_ticks(void) { return frames; }
+
+int plat_listar(const char *suf, char nombres[][16], int max)
+{
+    DIR *d = opendir(plat_data_dir());
+    struct dirent *e;
+    int n = 0, ls = (int)strlen(suf), l;
+    if (!d) return 0;
+    while (n < max && (e = readdir(d)) != NULL) {
+        l = (int)strlen(e->d_name);
+        if (l <= ls || l > 15 + ls || strcmp(e->d_name + l - ls, suf) != 0) continue;
+        memcpy(nombres[n], e->d_name, (size_t)(l - ls)); nombres[n][l - ls] = 0;
+        n++;
+    }
+    closedir(d);
+    return n;
+}
 
 void plat_snapshot(const char *name)
 {
@@ -59,6 +81,7 @@ u16 plat_keys(void)
     case '0': cur = K_0; break;      case '1': cur = K_1; break;
     case '2': cur = K_2; break;      case '3': cur = K_3; break;
     case '4': cur = K_4; break;
+    case 'Y': cur = K_YES; break;
     case 'M': cur = K_M; break;
     case 'S': {
         char nm[16]; int n = 0;

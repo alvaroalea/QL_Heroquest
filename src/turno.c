@@ -82,7 +82,7 @@ static void cancelar(Partida *p) { p->v.pasos = 0; }             /* 0x82C6 */
 static void zona_especial(Partida *p, int pers)                  /* 0x7281: en la mision 4 abrir la puerta de la columna 5, filas 3 y 4 deja ver al monstruo 1 */
 {
     const Pers *r = &p->pers[pers];
-    if (p->mision == 4 && r->col == 5 && r->fila >= 3 && r->fila < 5) p->mons[1].cuerpo |= 1;
+    if ((p->ev & (EV_ROCA | EV_DESPIERTA)) && r->col == 5 && r->fila >= 3 && r->fila < 5) p->mons[1].cuerpo |= 1;
 }
 
 static void objeto_en_casilla(Partida *p, int c, int v)         /* 0xA0E6: pisar un objeto lo convierte en otra cosa y deja un evento pendiente; el paso sigue */
@@ -116,7 +116,15 @@ static void fin_paso(Partida *p, int pers, int guion, int dest)  /* 0x850F */
     if (p->v.sonido_pend != 9) p->v.sonido_pend = 1;             /* 0x8543: el del paso, salvo que haya una puerta pendiente */
     sala = vista_sala_de(p, r->col, r->fila);
     if (sala == r->hab) { vista_iniciar_paso(p, pers, guion); return; }       /* sigue en la sala: se anima */
-    if (sala != 0 || p->mision != 9) { p->v.redibujar = 1; return; }          /* otra sala: se repinta la vista */
+    if ((p->ev & EV_TELEPORTE) && p->tp_n && r->hab == p->tp_sala) {                    /* ampliacion (0x848C): salir de la sala lleva a un destino al azar */
+        const u8 *t = p->tp[dado() % p->tp_n];
+        r->hab = t[0]; r->col = t[1]; r->fila = t[2];
+        r->casilla = (u16)(0x6400 + t[2] * MAP_W + t[1]);
+        p->v.ult_casilla = (u16)(0x6400 + t[4] * MAP_W + t[3]);
+        p->v.redibujar = 1;
+        return;
+    }
+    if (sala != 0 || !(p->ev & EV_CASTILLO)) { p->v.redibujar = 1; return; }          /* otra sala: se repinta la vista */
     for (;;) {                                                   /* mision 9: una casilla sin sala es un teletransporte al azar */
         e = dado(); c = dado();
         i = c + e;
@@ -196,6 +204,7 @@ int turno_clic(Partida *p, int pers, int cur_x, int cur_y)
     int col = (cur_x - 12) >> 3, fila = (cur_y - 2) >> 3, i;
     const int *z = vista_zonas();
     if (p->v.pasos) return -1;
+    if (cur_y < 0x0A || cur_y > 0xAE) return -1;             /* el raton llega a todas las lineas, mas alla de la vista: no es un clic en el tablero */
     if (p->v.anim_fin) {
         if (registro(pers)->estado == 2) return -1;
         p->v.anim_fin = 0;

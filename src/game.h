@@ -18,8 +18,7 @@ extern Heroe heroes[4];           /* 0 barbaro, 1 enano, 2 elfo ("duende"), 3 he
 extern int g_mision;              /* 0 a 13 */
 extern int g_manuscrita;          /* 1 = fuente manuscrita */
 extern int g_musica;              /* 1 = musica activada (de momento solo la marca) */
-extern int g_cursores;            /* 1 = las teclas de cursor tambien mueven */
-extern u8  plat_cursores;         /* plat_ql.c: 1 = cursores activos */
+extern int g_raton;               /* tipo de raton (RAT_* de platform.h); RAT_CURSORES = las teclas de cursor tambien mueven */
 
 void game_init(void);             /* heroes por omisión */
 void game_run(int mision);        /* la partida (de momento un aviso y vuelta al menu) */

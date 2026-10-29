@@ -244,5 +244,5 @@ Para convertir los `.skool` en ensamblador: `tmp/venv/bin/skool2asm.py ref/zx/he
 
 ## 13. Opciones previstas y no usadas
 
-- **Cargar otras aventuras** (`0x651F`): nunca se publicaron más aventuras. El código carga un bloque de cinta en `0x4000` y lo ejecuta.
+- **Cargar otras aventuras** (`0x651F`): el original no la usa (la ampliación Return of the Witch Lord es otra imagen completa de la cinta, `docs/ZX_AMPLIACION.md`). El código carga un bloque de cinta en `0x4000` y lo ejecuta.
 - **Grabación en disco +3** (`0x65E1`) y enlace de desarrollo por puerto paralelo (`0x6900`).

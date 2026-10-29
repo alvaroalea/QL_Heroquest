@@ -26,17 +26,18 @@ build/datos/         <- índices de texto para el PC
   - `escenario/`: paredes, puertas, suelo, escaleras y piezas base: tinta negra y el resto transparente (el juego las compone con OR). Los **muebles** (17) son sprites con halo blanco.
   - `retratos/` (10, de 128×64) y `marco/` (marco de pantalla y pantalla de carga, 256×192): opacos y con los colores de sus celdas de atributos (sin el brillo).
   - `fuentes/`: `baldosas` (32 baldosas de 8×8), `fuente_normal` y `fuente_manuscrita` (68 caracteres de 8×8, en una hoja de 17 columnas): negro sobre transparente; cualquier punto opaco cuenta como «1».
+  - `fuentes/baldosa_niebla.png` (8×8, solo en `asset/graficos_ql/`): la baldosa 33 del plano, el icono de la niebla de la muerte de la ampliación; se empaqueta detrás de la marca en `marca_activo_bin` (16 bytes). Es una copia de la baldosa 27 hasta que se dibuje la voluta.
 - En el juego solo se usan la **fuente activa** (la normal por defecto; la manuscrita es la que se activa con «3: MANUSCRITO» en Controles) y las **baldosas del mapa** (`0xB1C8`).
 
 ## Formato de los binarios (`data/`)
 
 **Los nombres de fichero del QL no llevan punto**: `sprites.bin` del PC es `sprites_bin` en el QL.
 
-**Marco y pantalla de carga** (`marco_bin`): entrada 0 = `marco.png`, ahora de **256 × 256** (la versión retocada en `asset/graficos_ql/marco/`; las 32 líneas de arriba y de abajo no se usan y quedan en negro) y se vuelca en la línea 0; si volviera a ser de 256 × 192 el juego la centra (`(256 - alto) / 2`). Entrada 1 = `pantalla_carga.png` (256 × 192). Además el empaquetador escribe **`carga_scr`**: la pantalla de carga como memoria de pantalla del QL (32.768 bytes, 128 por línea, centrada: líneas 32 a 223), que el `boot` vuelca a `0x20000` antes de lanzar el juego:
+**Marco y pantalla de carga** (`marco_bin`): entrada 0 = `marco.png`, ahora de **256 × 256** (la versión retocada en `asset/graficos_ql/marco/`; las 32 líneas de arriba y de abajo no se usan y quedan en negro) y se vuelca en la línea 0; si volviera a ser de 256 × 192 el juego la centra (`(256 - alto) / 2`). `marco_bin` lleva solo esa entrada: la pantalla de carga (`pantalla_carga.png`, 256 × 192) ya no va en el paquete (el juego no la usaba y ocupaba 24.576 bytes de montón). El empaquetador la escribe solo como **`heroquest_scr`**: la pantalla de carga como memoria de pantalla del QL (32.768 bytes, 128 por línea, centrada: líneas 32 a 223), que el `boot` vuelca a `0x20000` antes de lanzar el juego:
 
 ```
 110 MODE 8
-120 LBYTES flp1_carga_scr,131072
+120 LBYTES flp1_heroquest_scr,131072
 130 EXEC_W flp1_heroquest
 140 MODE 4
 ```
@@ -61,7 +62,7 @@ Datos: por cada copia y cada fila, por cada grupo de 4 puntos (una palabra de pa
 
 Fuentes y baldosas: `baldosas_bin` (256 bytes), `fuente_normal_bin` y `fuente_manuscrita_bin` (544 bytes): **1 bit por punto, 8 bytes por carácter**, como en el original; el color se pone al dibujar.
 
-Tamaños actuales (sin desplazar): sprites 60.256 bytes, escenario 56.024, retratos 41.128 y marco 49.192.
+Tamaños actuales (sin desplazar): sprites 60.256 bytes, escenario 56.024, retratos 41.128 y marco 32.792 (antes 49.192 con la pantalla de carga).
 
 ## Gráficos añadidos para la vista
 

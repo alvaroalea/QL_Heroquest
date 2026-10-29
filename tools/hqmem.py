@@ -4,7 +4,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Version del juego: 'es' (Dro Soft, asset/extraido) o 'en' (Gremlin, asset/extraido_en). Se elige con la variable HQ_VERSION.
 VERSION = os.environ.get('HQ_VERSION', 'es')
 if VERSION not in ('es', 'en'): raise SystemExit('HQ_VERSION debe ser es o en')
-EXT = os.path.join(ROOT, 'asset', 'extraido' if VERSION == 'es' else 'extraido_en')
+# Juego: 'hq' (Hero Quest) o 'witchlord' (la ampliacion Return of the Witch Lord, variable HQ_JUEGO): asset/extraido_wl (espanol) y asset/extraido_wl_en (ingles)
+JUEGO = os.environ.get('HQ_JUEGO', 'hq')
+if JUEGO not in ('hq', 'witchlord'): raise SystemExit('HQ_JUEGO debe ser hq o witchlord')
+EXT = os.path.join(ROOT, 'asset', ('extraido' if JUEGO == 'hq' else 'extraido_wl') + ('' if VERSION == 'es' else '_en'))
 BANKS = [open(os.path.join(EXT, 'bank%d.bin' % i), 'rb').read() for i in range(8)]
 
 def byte(addr, bank=0):

@@ -6,7 +6,7 @@ export SQLUX_DUMP=$R/$OUT/dump.bin SQLUX_KEYS=$R/$OUT/keys.txt
 tmp/sQLux/build/sqlux -f ${INI:-tmp/sqlux_hq.ini} -w 1x > $OUT/sqlux.log 2>&1 &
 PID=$!
 sleep ${BOOT_WAIT:-6}
-declare -A CODE=( [U]=0x17 [D]=0x22 [L]=0x29 [R]=0x03 [F]=0x36 [E]=0x33 [0]=0x0d [1]=0x1b [2]=0x09 [3]=0x19 )
+declare -A CODE=( [U]=0x17 [D]=0x22 [L]=0x29 [R]=0x03 [F]=0x36 [E]=0x33 [0]=0x0d [1]=0x1b [2]=0x09 [3]=0x19 [4]=0x3e )
 for t in $*; do
   case $t in
     S*) sleep ${SNAP_WAIT:-0.5}; kill -USR1 $PID; sleep 0.5; mv $OUT/dump.bin $OUT/${t#S}.bin 2>/dev/null ;;

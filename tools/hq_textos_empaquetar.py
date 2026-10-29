@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Empaqueta los textos del juego en data/textos_bin (formato para el QL, big endian) y escribe en build/datos/
-el indice y las constantes (textos_ids.h). Lee asset/textos_ql/textos.es.txt (o textos.en.txt con HQ_VERSION=en; el nombre antiguo textos.txt vale para el espanol)
+"""Empaqueta los textos del juego en build/datos/textos_es_bin y textos_en_bin (formato para el QL, big endian; tools/hq_misiones_empaquetar.py los copia a data/textos_es y textos_en, ya no van al final de
+data/heroquest_es_idx y heroquest_en_idx) y escribe en build/datos/ el indice y las constantes (textos_ids.h). Los dos idiomas tienen los mismos elementos y ids. Lee asset/textos_ql/textos.es.txt (o textos.en.txt con HQ_VERSION=en; el nombre antiguo textos.txt vale para el espanol)
 si existe (version traducida o retocada) y, si no, asset/textos/textos.<idioma>.txt (original). Las longitudes pueden cambiar: el binario guarda los textos sin relleno,
 con su alineacion; las ventanas guardan el ancho minimo y la columna central, para que el juego las recalcule.
 Formato del binario:
@@ -133,30 +133,36 @@ def empaquetar(permitir):
             raise SystemExit('ERROR: %s' % e)
         if len(b) % 2: b += b'\x00'
         cuerpos.append((it, bytes(b), alin_t, cant)); ids.append(it['id'])
-    N = len(cuerpos); off = 8 + 8 * N; tabla = b''; datos = b''; tipos = {'ventana': 1, 'guion': 2, 'cadenas': 3, 'indices': 4}
-    for it, b, al, cant in cuerpos:
-        tabla += struct.pack('>LBBH', off + len(datos), tipos[it['tipo']], al, cant); datos += b
-    blob = b'HQTX' + struct.pack('>HH', 1, N) + tabla + datos
-    os.makedirs(os.path.join(ROOT, 'data'), exist_ok=True); os.makedirs(os.path.join(ROOT, 'build/datos'), exist_ok=True)
-    open(os.path.join(ROOT, 'data/textos_bin'), 'wb').write(blob)
-    with open(os.path.join(ROOT, 'build/datos/textos_ids.h'), 'w') as f:
-        f.write('/* generado por tools/hq_textos_empaquetar.py: numero de cada elemento de data/textos_bin */\n#ifndef TEXTOS_IDS_H\n#define TEXTOS_IDS_H\n')
-        for i, x in enumerate(ids): f.write('#define TX_%s %d\n' % (x, i))
-        f.write('#define TX_NUM %d\n#endif\n' % N)
-    pos = dict((x, i) for i, x in enumerate(ids)); nes = min(i for i, x in enumerate(ids) if x.startswith('EN_'))
+    nes = min(i for i, x in enumerate(ids) if x.startswith('EN_'))
+    pos = dict((x, i) for i, x in enumerate(ids))
     ven = dict((v, e) for e, v in pares_ventanas()[1].items() if v)
-    mapa = []
-    for x in ids[:nes]:
-        en_id = 'EN_' + ven[x] if x in ven else 'EN_' + x
-        mapa.append(pos.get(en_id, -1))
-    with open(os.path.join(ROOT, 'build/datos/idioma_en.h'), 'w') as f:
-        f.write('/* generado por tools/hq_textos_empaquetar.py: elemento de textos_bin con la version inglesa de cada elemento espanol (-1 = no la tiene) */\n')
-        f.write('#define IDIOMA_EN_N %d\n#define IDIOMA_EN_MAP { %s }\n' % (len(mapa), ', '.join(str(x) for x in mapa)))
+    mapa = [pos.get('EN_' + ven[x] if x in ven else 'EN_' + x, -1) for x in ids[:nes]]       # elemento ingles de cada elemento espanol (-1 = el mismo)
+    usados = set(m for m in mapa if m >= 0)
+    src = ''.join(open(os.path.join(ROOT, 'src', f), encoding='utf-8', errors='replace').read() for f in os.listdir(os.path.join(ROOT, 'src')) if f.endswith(('.c', '.h')))
+    cola = [k for k in range(nes, len(ids)) if k not in usados or ('TX_' + ids[k]) in src]  # elementos solo ingleses (o que el codigo pide por su nombre): estan en los dos ficheros
+    final = list(range(nes)) + cola; N = len(final)
+    ids_f = [ids[k] for k in final]
+    tipos = {'ventana': 1, 'guion': 2, 'cadenas': 3, 'indices': 4}
+    os.makedirs(os.path.join(ROOT, 'build/datos'), exist_ok=True)
+    def blob(sel):
+        tabla = b''; datos = b''; off = 8 + 8 * N
+        for k in sel:
+            it, b, al, cant = cuerpos[k]
+            tabla += struct.pack('>LBBH', off + len(datos), tipos[it['tipo']], al, cant); datos += b
+        return b'HQTX' + struct.pack('>HH', 1, N) + tabla + datos
+    # los dos idiomas tienen los mismos elementos en el mismo orden: el espanol los del juego y el ingles su version inglesa (o el mismo si no la tiene)
+    blobs = {'es': blob(list(range(nes)) + cola), 'en': blob([m if m >= 0 else k for k, m in enumerate(mapa)] + cola)}
+    for v, b in blobs.items(): open(os.path.join(ROOT, 'build/datos/textos_%s_bin' % v), 'wb').write(b)
+    with open(os.path.join(ROOT, 'build/datos/textos_ids.h'), 'w') as f:
+        f.write('/* generado por tools/hq_textos_empaquetar.py: numero de cada elemento de los textos (los mismos en espanol e ingles) */\n#ifndef TEXTOS_IDS_H\n#define TEXTOS_IDS_H\n')
+        for i, x in enumerate(ids_f): f.write('#define TX_%s %d\n' % (x, i))
+        f.write('#define TX_NUM %d\n#endif\n' % N)
     with open(os.path.join(ROOT, 'build/datos/indice_textos.txt'), 'w') as f:
         f.write('numero id tipo desplazamiento bytes\n')
-        for i, (it, b, al, cant) in enumerate(cuerpos):
-            f.write('%3d %-28s %-8s %6d %5d\n' % (i, it['id'], it['tipo'], 8 + 8 * N + sum(len(c[1]) for c in cuerpos[:i]), len(b)))
-    print('%s: %d elementos, %d bytes (%s)' % ('data/textos_bin', N, len(blob), 'retocado: asset/textos_ql' if RETOCADO else 'original'))
+        for i, k in enumerate(final):
+            it, b, al, cant = cuerpos[k]
+            f.write('%3d %-28s %-8s %6d %5d\n' % (i, ids[k], it['tipo'], 8 + 8 * N + sum(len(cuerpos[q][1]) for q in final[:i]), len(b)))
+    print('textos (los copia hq_misiones_empaquetar.py a data/textos_es y textos_en): %d elementos, es %d bytes, en %d bytes (%s)' % (N, len(blobs['es']), len(blobs['en']), 'retocado: asset/textos_ql' if RETOCADO else 'original'))
     return ruta, items
 if __name__ == '__main__':
     empaquetar('--permitir-excesos' in sys.argv)

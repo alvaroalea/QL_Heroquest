@@ -12,7 +12,7 @@
 #include <qdos.h>
 
 u8 *screen = (u8 *)0x20000L;               /* pantalla 1 del QL estandar */
-u8 plat_cursores = 1;                      /* 0 = las teclas de cursor no cuentan (pantalla de controles) */
+u8 plat_raton = RAT_CURSORES;              /* tipo de raton; los cursores solo cuentan con RAT_CURSORES */
 
 /* ql_ipc.asm */
 extern long ql_trap3(long d0, long d1, long d2, long d3, long a0, long a1);
@@ -22,12 +22,19 @@ extern void ql_tick_on(void);
 extern void ql_tick_off(void);
 extern long ql_ticks(void);
 extern long ql_isr_set(long on);
+extern void ql_qimi_on(void);
+extern void ql_qimi_off(void);
+extern void ql_qimi_take(long *dx, long *dy);
+extern long ql_pe_rptr(long chan, long *rec, long *xy);
+extern long ql_dir_open(char *nombre);
+extern void ql_dir_close(long canal);
 
 /* Operaciones de trap #3 usadas */
 #define IO_FBYTE 0x01L                      /* D3 = timeout; D1.B = byte; ERR.NC (-1) si no hay nada */
 #define SD_WDEF  0x0DL                      /* D1.B = color borde, D2.W = ancho borde, A1 -> 4 words w,h,x,y */
 #define SD_CURE  0x0EL                      /* activa el cursor */
 #define SD_CURS  0x0FL                      /* suprime el cursor */
+#define IO_FSTRG 0x03L                      /* D2 = bytes, A1 = buffer, D3 = timeout; D0 = 0 si lo leyo entero */
 #define SD_CLEAR 0x20L                      /* borra toda la ventana */
 #define FLUSH_MAX 512                       /* tope de bytes por vaciado, por si el canal devolviera datos sin fin */
 
@@ -101,24 +108,132 @@ static const struct { u8 code; u16 bit; } kmap[] = {
     { 0x32, K_UP },    { 0x37, K_DOWN }, { 0x31, K_LEFT }, { 0x34, K_RIGHT },   /* cursores */
     { 0x33, K_ESC },
     { 0x0D, K_0 }, { 0x1B, K_1 }, { 0x09, K_2 }, { 0x19, K_3 }, { 0x2E, K_M },
-    { 0x3E, K_4 }      /* la ultima: solo se lee con plat_tecla4 */
+    { 0x3E, K_4 },     /* las ultimas tres: solo se leen con plat_tecla4 */
+    { 0x16, K_YES },   /* Y */
+    { 0x23, K_YES }    /* S */
 };
 #define NKMAP (sizeof(kmap) / sizeof(kmap[0]))
 
 u8 plat_tecla4 = 0;
+
+/* QIMSI (interfaz PS/2 en el puerto de ROM; registros del manual y protocolo del driver de Peter Graf, qimsi_mouse.zip, y de
+   qimsi.js de QLRun): solo hay lecturas. $FEDF = estado (bit 0: hay un byte; bit 4: el raton es IntelliMouse, paquetes de 4 bytes
+   en vez de 3), $FEDD = byte actual y $FEDE = leerlo lo da por recibido. Paquete: cabecera (bit 3 siempre 1, bits 0 a 2
+   botones izq., der., central), X e Y (enteros de 8 bits con signo, Y positiva = arriba) y, solo con rueda, la rueda.
+   Un paquete tarda 3,7 ms y el driver original lee un byte por pasada del planificador (50 Hz); aqui, con un paquete a medias,
+   se espera el siguiente byte con un tope. */
+#define QS_COD  (*(volatile u8 *)0xFEDDL)
+#define QS_ACK  (*(volatile u8 *)0xFEDEL)
+#define QS_EST  (*(volatile u8 *)0xFEDFL)
+#define QS_ESPERA 800                       /* vueltas de espera por un byte (~4 ms) */
+#define QS_MAXB   16                        /* bytes por llamada como mucho (un bus que lea siempre 1 en el bit 0 no cuelga el juego) */
+
+static int qs_dx, qs_dy;                    /* cuentas pendientes de entregar a plat_raton_delta */
+static u16 qs_boton;                        /* K_FIRE si el boton izquierdo esta pulsado */
+static int qs_n, qs_len;                    /* bytes del paquete ya leidos y largo del paquete */
+static u8 qs_pk[4];
+static volatile u8 qs_basura;
+
+static void qimsi_leer(void)
+{
+    int w = 0, nb = 0;
+    while (nb < QS_MAXB) {
+        u8 e = QS_EST;
+        if (e & 1) {
+            u8 b = QS_COD;
+            qs_basura = QS_ACK;                           /* libera el byte; c68 -O elimina una lectura volatil cuyo valor se descarta */
+            w = 0;
+            nb++;
+            if (qs_n == 0) {
+                if (!(b & 8)) continue;                   /* sin sincronia: descarta hasta una cabecera */
+                qs_len = (e & 0x10) ? 4 : 3;
+            }
+            qs_pk[qs_n++] = b;
+            if (qs_n < qs_len) continue;
+            qs_n = 0;
+            qs_dx += (int)(signed char)qs_pk[1];
+            qs_dy -= (int)(signed char)qs_pk[2];          /* Y positiva = arriba en el raton */
+            qs_boton = (qs_pk[0] & 1) ? K_FIRE : 0;
+        } else if (qs_n == 0 || ++w > QS_ESPERA) {
+            if (w > QS_ESPERA) qs_n = 0;                  /* paquete perdido: vuelve a sincronizar */
+            break;
+        }
+    }
+}
+
+/* QIMI (interfaz de raton de Dave Westbury, tambien emulada por Aurora y SuperHermes): $1BF9C = botones (bit 4 derecho, bit 5 izquierdo,
+   a 0 = pulsado). Los movimientos llegan como interrupciones externas, una por pulso, y los cuenta ql_ipc.asm; por eso se instala
+   la rutina la primera vez que se usa y se quita al salir. */
+#define QI_BOT  (*(volatile u8 *)0x1BF9CL)
+static u8 qi_up;
+
+static void qimi_instala(void)
+{
+    if (qi_up) return;
+    ql_qimi_on();
+    qi_up = 1;
+}
+
+/* Pointer Environment: IOP.RPTR sobre el canal de la consola, con terminacion $30 (vuelve siempre ya). D1 trae la posicion absoluta del
+   puntero en pantalla (x en la palabra alta, y en la baja) y el registro de puntero, en el byte 11, si hay un boton pulsado. El movimiento
+   es la diferencia con la lectura anterior; la x del PE va siempre en la rejilla de 512 puntos (en modo 8 el puntero arranca en x = 256, y = 128), por eso se divide entre 2. IOP.PINF ($70) dice si el Pointer Environment esta cargado. */
+static long pe_rec[6];
+static long pe_xy;
+static int pe_x, pe_y;
+static int pe_hay;                          /* ya hay una posicion anterior */
+static u16 pe_boton;
+
+static void pe_leer(void)
+{
+    int x, y;
+    if (con_out < 0L || ql_pe_rptr(con_out, pe_rec, &pe_xy) != 0L) return;
+    x = (int)(short)(pe_xy >> 16) >> 1; y = (int)(short)(pe_xy & 0xFFFFL);
+    if (pe_hay) { qs_dx += x - pe_x; qs_dy += y - pe_y; }
+    pe_x = x; pe_y = y; pe_hay = 1;
+    pe_boton = (((u8 *)pe_rec)[11] != 0) ? K_FIRE : 0;
+}
+
+int plat_raton_auto(void)
+{
+    u8 e = QS_EST;
+    return ((e & 0xEE) == 0 && (e & 0x10)) ? RAT_QIMSI : RAT_CURSORES;   /* con raton sin rueda no hay bit 4: se elige a mano en el menu */
+}
+
+int plat_raton_ok(int modo)
+{
+    if (modo == RAT_QIMI) return (QI_BOT & 0x30) == 0x30;       /* sin boton pulsado los bits 4 y 5 valen 1; no hay deteccion mejor */
+    if (modo == RAT_PE) return ql_trap3(0x70L, 0L, 0L, -1L, con_out, 0L) == 0L;
+    return modo == RAT_QIMSI && (QS_EST & 0xEE) == 0;     /* el registro real solo puede valer $00, $01, $10 o $11 (qimsi.js de QLRun); lo demas es el bus del puerto de ROM (sQLux con QSound da $75). Sin rueda y sin byte vale 0, igual que un bus a 0: ese caso no se distingue */
+}
+
+int plat_raton_estado(void) { return QS_EST; }
+
+void plat_raton_delta(int *dx, int *dy)
+{
+    *dx = qs_dx; *dy = qs_dy;
+    qs_dx = qs_dy = 0;
+    if (qi_up) {
+        long ax, ay;
+        ql_qimi_take(&ax, &ay);
+        *dx += (int)ax; *dy += (int)ay;
+    }
+}
 
 u16 plat_keys(void)
 {
     int rows[8], i, r;
     unsigned int need = 0;
     u16 k = 0;
-    int n = plat_tecla4 ? (int)NKMAP : (int)NKMAP - 1;
+    int n = plat_tecla4 ? (int)NKMAP : (int)NKMAP - 3;
     for (i = 0; i < n; i++) need |= 1u << (7 - (kmap[i].code >> 3));
     for (r = 0; r < 8; r++) rows[r] = (need & (1u << r)) ? kr_row(r) : 0;
     for (i = 0; i < n; i++) {
-        if (i >= 5 && i <= 8 && !plat_cursores) continue;       /* entradas de los cursores */
+        if (i >= 5 && i <= 8 && plat_raton != RAT_CURSORES) continue;       /* entradas de los cursores */
         if (rows[7 - (kmap[i].code >> 3)] & (1 << (kmap[i].code & 7))) k |= kmap[i].bit;
     }
+    if (plat_raton == RAT_QIMSI) { qimsi_leer(); k |= qs_boton; }
+    else if (plat_raton == RAT_PE) { pe_leer(); k |= pe_boton; }
+    else if (plat_raton == RAT_QIMI) { qimi_instala(); if (!(QI_BOT & 0x20)) k |= K_FIRE; }
     return k;
 }
 
@@ -160,9 +275,42 @@ static void tk2_default(char *name, long off)
     putenv(s);
 }
 
+/* Unidad (o directorio) de los ficheros del juego: la variable DIR$ de SuperBASIC, que pone el boot (DIR$="FLP1_"). No es una variable de
+   entorno: se busca en la tabla de nombres de BASIC (entradas de 8 bytes: uso, tipo (1 = cadena), desplazamiento del nombre en la lista de
+   nombres y desplazamiento del valor en el area de valores; las cadenas son una palabra de longitud y los caracteres) */
+static char dir_basic[48];
+
+static void leer_dir(void)
+{
+    char *bv, *nt, *ntb, *nl, *vv, *q;
+    int n, i;
+    dir_basic[0] = 0;
+    _super();
+    bv  = *(char **)(_sys_var + 0x10) + 0x68;
+    ntb = bv + *(long *)(bv + 0x18);                       /* BV_NTBAS */
+    nt  = bv + *(long *)(bv + 0x1C);                       /* BV_NTP */
+    nl  = bv + *(long *)(bv + 0x20);                       /* BV_NLBAS */
+    vv  = bv + *(long *)(bv + 0x28);                       /* BV_VVBAS */
+    for (; nt > ntb; ) {
+        nt -= 8;
+        if (nt[1] != 1 || nt[0] != 2) continue;
+        q = nl + *(short *)(nt + 2);
+        if (q[0] != 4 || (q[1] & 0xDF) != 'D' || (q[2] & 0xDF) != 'I' || (q[3] & 0xDF) != 'R' || q[4] != '$') continue;
+        if (*(long *)(nt + 4) < 0) break;                  /* DIR$ sin valor */
+        q = vv + *(long *)(nt + 4);
+        if ((long)q & 1L) break;
+        n = *(short *)q;
+        if (n < 1 || n > 40) break;
+        for (i = 0; i < n; i++) dir_basic[i] = q[2 + i];
+        dir_basic[n] = 0;
+        break;
+    }
+    _user();
+}
 void _envsetup(char *env)
 {
     char *p = 0, *bv, *nt, *ntb, *nl;
+    leer_dir();                                            /* lo primero: la unidad de los ficheros */
     if (env && !((long)env & 1L) && *(short *)env == 0x4AFC)
         p = *(char **)(env + 2);                           /* entorno pasado por el trabajo padre */
     else {
@@ -199,12 +347,48 @@ int plat_default_dir(int prog, char *buf, int max)
     return buf[0] != 0;
 }
 
-/* Prefijo de los ficheros de datos: el directorio de datos de Toolkit II si lo hay y, si no, la unidad de disco 1 */
+/* Prefijo de todos los ficheros (datos, misiones, heroes guardados): DIR$ de SuperBASIC; si no esta definida, el directorio de datos de
+   Toolkit II si lo hay y, si no, la unidad de disco 1 */
 const char *plat_data_dir(void)
 {
     static char dir[64];
+    if (dir_basic[0]) return dir_basic;
     if (!plat_default_dir(0, dir, sizeof(dir) - 1)) strcpy(dir, "flp1_");
     return dir;
+}
+
+/* Lista la unidad de datos: se abre el dispositivo (p. ej. "flp1_") como directorio y se leen entradas de 64 bytes: +14 longitud del nombre (palabra) y +16 el nombre */
+int plat_listar(const char *suf, char nombres[][16], int max)
+{
+    const char *d = plat_data_dir();
+    long qa[16];
+    long ch;
+    u8 e[64];
+    char *qn = (char *)qa;
+    int n = 0, ls = (int)strlen(suf), ld = (int)strlen(d), l, i, c;
+    if (ld > 40) return 0;
+    qn[0] = 0; qn[1] = (char)ld;
+    memcpy(qn + 2, d, (size_t)ld);
+    ch = ql_dir_open(qn);
+    if (ch < 0L) return 0;
+    while (n < max && ql_trap3(IO_FSTRG, 0L, 64L, -1L, ch, (long)e) == 0L) {
+        l = (e[14] << 8) | e[15];
+        if (l <= ls || l > 15 + ls || l > 36) continue;
+        for (i = 0; i < ls; i++) {
+            c = e[16 + l - ls + i];
+            if (c >= 'A' && c <= 'Z') c += 32;
+            if (c != suf[i]) break;
+        }
+        if (i < ls) continue;
+        for (i = 0; i < l - ls; i++) {
+            c = e[16 + i];
+            nombres[n][i] = (char)((c >= 'A' && c <= 'Z') ? c + 32 : c);
+        }
+        nombres[n][l - ls] = 0;
+        n++;
+    }
+    ql_dir_close(ch);
+    return n;
 }
 
 void plat_snapshot(const char *name) { (void)name; }
@@ -238,6 +422,7 @@ int plat_present(void)
 
 void plat_shutdown(void)
 {
+    if (qi_up) { ql_qimi_off(); qi_up = 0; }
     if (tick_up) { ql_isr_set(0L); mus_isr_modo(0); ql_tick_off(); tick_up = 0; }      /* antes de terminar: la tarea del reloj esta en nuestro codigo */
     if (!con_up) return;                    /* idempotente: tambien lo llama atexit */
     con_up = 0;

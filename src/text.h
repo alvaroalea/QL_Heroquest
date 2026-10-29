@@ -1,4 +1,4 @@
-/* HeroQuest QL - textos del juego (data/textos_bin, formato en docs/ZX_DATOS_QL.md). Los identificadores TX_* los genera
+/* HeroQuest QL - textos del juego (fichero data/textos_es o textos_en, formato en docs/ZX_DATOS_QL.md). Los identificadores TX_* los genera
    tools/hq_textos_empaquetar.py en build/datos/textos_ids.h. */
 #ifndef TEXT_H
 #define TEXT_H

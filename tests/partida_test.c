@@ -77,7 +77,7 @@ static void cargar_caso(Partida *p, int m, int presentes, const u8 eq[4][5])
         p->pers[i].armas = eq[i][3]; p->pers[i].armadura = eq[i][4];
         pr[i] = (u8)((presentes >> i) & 1);
     }
-    sprintf(nm, "%smision_%02d_es_bin", ddir, m);
+    sprintf(nm, "%sheroquest_%02d_es", ddir, m);
     d = leer_fichero(nm, &n);
     if (!d) { fprintf(out, "no se puede leer %s\n", nm); exit(2); }
     if (!partida_cargar(p, m, d, n, pr)) { fprintf(out, "FALLO: partida_cargar rechaza %s\n", nm); fallos++; }
@@ -223,7 +223,7 @@ int main(int argc, char **argv)
             int mu, m, st, e;
             sscanf(ln, "MC %d %d %d -> %d", &mu, &m, &st, &e);
             pers_boot(&p);
-            p.v.muertos = (u8)mu; p.mision = (u8)m; p.pers[4].estado = (u8)st;
+            p.v.muertos = (u8)mu; p.mision = (u8)m; p.ev = (u16)(m == 1 ? EV_RAGNAR : 0); p.pers[4].estado = (u8)st;
             buf[0] = (u8)e; b2[0] = (u8)mision_continua(&p);
             igual("mision continua", b2, buf, 1, mu * 100 + m * 10 + (st ? 1 : 0));
         }

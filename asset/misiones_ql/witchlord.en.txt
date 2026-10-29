@@ -1,0 +1,78 @@
+# Datos de la aventura (ampliacion Return of the Witch Lord, ZX 128K ingles) - generado por tools/hq_misiones_extraer.py
+# EDITAR LA COPIA de asset/misiones_ql/witchlord.en.txt (este fichero se regenera).
+# subtitulo: lo que sale bajo HEROQUEST en los menus (maximo 32 caracteres); las misiones son witchlord_NN.en.txt
+subtitulo RETURN OF THE WITCH LORD
+
+[monstruos] un tipo por linea, el primero es el tipo 0: nombre (hasta 9 caracteres)|retrato de combate|baldosa del plano|sprite de la vista|clase: N normal, V orco (segundo ataque de la vara de orco), M muerto viviente (espada espiritual y agua santa) (los tipos son los de la columna tipo de [monstruos] de las misiones)
+GOBLIN|11|20|0|N
+ORC|4|21|1|V
+FIMIR|5|22|2|N
+WARRIOR|6|23|3|N
+SKELETON|7|24|4|M
+ZOMBIE|10|25|5|M
+MUMMY|8|26|6|M
+SORCERER|4|27|7|N
+SPIRIT|7|24|4|N
+DEATHMIST|4|33|7|N
+BELLTHOR|4|27|7|N
+SKULMAR|4|27|7|N
+DOOMGUARD|6|23|3|N
+KESSANDRA|4|27|7|N
+WITCHLORD|4|27|7|N
+STATUE|4|21|1|N
+
+[estadisticas] una por linea, la primera es la estadistica 0 (columna estadistica de [monstruos] de las misiones): movimiento (sin efecto en el original)|dados de ataque|dados de defensa|monedas al morir|a quien (0 nadie, 1 el que lo mata, 2 los cuatro)|bit de objeto (0 ninguno)|mensaje (0 ninguno, 1 BANE DE ORC, 2 ESTRELLA DEL OESTE)|jefe (1 = solo la espada espiritual le hace dano)
+10|2|1|0|0|0|0|0
+8|3|2|0|0|0|0|0
+6|3|3|0|0|0|0|0
+6|3|4|0|0|0|0|0
+6|2|2|0|0|0|0|0
+4|2|3|0|0|0|0|0
+4|3|4|0|0|0|0|0
+6|4|4|0|0|0|0|0
+8|4|3|0|0|0|0|0
+6|4|3|0|0|0|0|0
+6|4|6|0|0|0|0|0
+8|5|6|0|0|0|0|0
+6|4|6|0|0|0|0|0
+6|4|6|0|0|0|0|0
+10|5|6|0|0|0|0|1
+8|3|2|0|0|0|0|0
+
+[epilogo] paginas que salen al morir un monstruo con la rutina de muerte epilogo (linea "pagina" y, por pagina, atributo(hex)|alineacion(L/C/R)|columna|fila|texto)
+pagina
+06|C|16|0|EPILOGUE
+05|C|16|2|THE WITCH LORD HAS BEEN DEFEATED
+05|C|16|3|AND HIS ARMY OF THE DEAD REMAINS
+05|C|16|4|ASLEEP UNDER THE EARTH.
+05|C|16|6|THE MINIONS OF THE WITCH LORD
+05|C|16|7|WHO ESCAPED ARE STILL ACTIVE
+05|C|16|8|AND WILL SURELY STRIVE TO HAVE
+05|C|16|9|REVENGE ON THOSE WHO DEFEATED
+05|L|7|10|THEIR MASTER.
+05|C|16|12|SKULMAR, WHO WE BELIEVED TO BE
+05|C|16|13|SLAIN, HAS ESCAPED FROM THE
+05|C|16|14|RUINS OF KALOS WITH MANY OF THE
+05|C|16|15|WITCH LORD'S MOST POWERFUL SPELL
+05|C|16|16|BOOKS. HE WAS AIDED BY THE
+05|C|16|17|TRAITOROUS SIR RAGNAR WHO YOU
+05|C|16|18|ONCE RESCUED FROM THE FORCES OF
+05|C|16|19|CHAOS.
+03|C|16|21|PRESS ANY KEY TO CONTINUE
+pagina
+05|C|16|2|I FEAR THAT IT WILL NOT BE LONG
+05|C|16|3|BEFORE YOU WILL HAVE TO CONFRONT
+05|C|16|4|SKULMAR AND ATTEMPT TO END THIS
+05|C|16|5|THREAT FOREVER, ALTHOUGH SIR
+05|C|16|6|RAGNAR HAS BEEN CAPTURED AND
+05|C|16|7|EXECUTED.
+05|C|16|9|BUT FOR THE PRESENT YOU HAVE
+05|C|16|10|EARNED YOURSELVES A REST. SO
+05|C|16|11|COME, MY FRIENDS, THE EMPEROR
+05|C|16|12|AWAITS YOU IN THE GRAND PALACE.
+05|C|16|13|TONIGHT YOU ARE TO HONOURED FOR
+05|C|16|14|YOUR INCREDIBLE FEATS OF
+05|C|16|15|HEROISM IN THE PRESENCE OF THE
+05|C|16|16|NOBILITY OF THE WHOLE OF THE
+05|C|16|17|EMPIRE.
+03|C|16|21|PRESS ANY KEY TO CONTINUE

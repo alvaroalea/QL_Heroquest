@@ -1,0 +1,124 @@
+# Mision 9 de Return of the Witch Lord (original ZX 128K espanol: banco 3, 0xDDBB) - generado por tools/hq_misiones_extraer.py
+# EDITAR LA COPIA de asset/misiones_ql/witchlord_NN.es.txt (este fichero se regenera). Formato y significado de los campos en docs/ZX_DATOS_QL.md.
+
+mision 9
+nombre LA CORTE DEL GRAN BRUJO
+# eventos: banderas de comportamiento (numeros de bit; cada bit repite lo especial de esa mision de Hero Quest, ver docs/ZX_MISIONES.md):
+#   0 solo el primero que sale cobra 100 | 1 Sir Ragnar | 3 oro de Magnus | 4 roca | 5 sin equipo ni hechizos | 6 cada heroe que sale cobra 100 | 7 sin hechizos de fuego | 9 castillo | 11 sala que se cierra | 12 el monstruo 1 cobra vida al pisar la columna 5 (filas 3 y 4) | 13 teletransporte al salir de la sala de la linea teleporte | 14 la roca de la trampa cae a la derecha del heroe
+eventos -
+# muerte: rutina al morir un monstruo segun su estadistica (sin linea, la normal): muerte <estadistica> normal | epilogo | salida [casillas a borrar (columna,fila) >] casillas de la escalera (1 a 4, codigos 0x38 a 0x3B)
+muerte 14 epilogo
+# errante: ruta de los monstruos con el bit 7 en b6 y sin vida (la niebla de la muerte): errante <pasos por ronda> <tramos que se repiten>, tramo = x o y, + o - y la coordenada con la que acaba
+# teleporte: con la bandera 13, salir de la sala indicada lleva a un destino al azar: teleporte <sala> <destinos>, destino = sala,columna,fila,columna de la puerta,fila de la puerta (1 a 6)
+
+# heroes: indice|columna|fila|grafico inicial (se asigna a los 4 heroes en orden: barbaro, enano, elfo, hechicero)
+heroe 0|13|10|23
+heroe 1|14|10|35
+heroe 2|13|11|47
+heroe 3|14|11|59
+
+[mapa] 26 columnas x 19 filas, cada casilla AA.BB (capa A . capa B) en hexadecimal
+01.C0 01.80 01.80 01.80 02.80 02.80 02.80 02.80 02.80 02.80 03.80 03.80 03.80 03.80 03.80 03.80 04.80 04.80 04.80 04.80 04.80 04.80 05.80 05.80 05.80 05.80
+01.40 15.C0 15.80 15.80 15.80 00.C0 00.80 00.80 00.80 00.C0 00.80 00.80 03.41 03.00 00.C0 00.80 00.80 00.C0 00.80 00.80 00.80 1A.C0 1A.20 1A.80 1A.80 05.11
+01.40 15.10 15.00 15.00 15.00 00.40 00.00 00.00 00.00 00.40 00.00 00.00 03.41 03.00 00.40 00.00 00.00 00.40 00.00 00.00 00.00 1A.40 1A.00 1A.00 1A.00 05.41
+01.40 15.40 15.00 15.00 15.00 00.40 00.00 00.00 00.00 00.40 00.00 00.00 03.41 03.00 00.40 00.00 00.00 00.40 00.00 00.00 00.00 1A.40 1A.00 1A.00 1A.00 05.41
+01.40 1B.C0 1B.80 1B.20 1B.80 1C.C0 1C.80 1C.80 1C.80 00.40 00.00 00.00 03.41 03.00 00.40 00.00 00.00 00.40 00.00 00.00 00.00 1A.40 1A.00 1A.00 1A.00 05.41
+06.40 1B.40 1B.00 1B.00 1B.00 1C.40 1C.00 1C.00 1C.00 00.40 00.00 00.00 08.40 08.00 00.40 00.00 00.00 00.C0 00.80 00.80 00.80 00.C0 00.80 00.80 00.80 0A.40
+06.40 1B.40 1B.00 1B.00 1B.00 1C.18 1C.00 1C.00 1C.00 07.C0 08.80 08.80 08.00 08.00 08.81 08.81 09.80 00.40 00.00 00.00 00.00 00.40 00.00 00.00 00.00 0A.40
+06.40 1B.40 1B.00 1B.00 1B.00 1C.40 1C.00 1C.00 1C.00 07.40 1F.C0 1F.80 1F.80 1F.80 1F.80 1F.80 09.40 00.40 00.00 00.00 00.00 00.40 00.00 00.00 00.00 0A.40
+06.40 1B.10 1B.00 1B.00 1B.00 1C.40 1C.00 1C.00 1C.00 07.40 1F.40 1F.00 1F.00 1F.00 1F.00 1F.00 09.40 00.40 00.00 00.00 00.00 00.40 00.00 00.00 00.00 0A.40
+06.40 06.81 06.81 06.81 07.80 07.80 07.20 07.80 07.80 07.00 1F.10 1F.00 1F.00 1F.00 1F.00 1F.00 09.40 09.81 09.81 09.81 09.81 09.81 0A.80 0A.80 0A.80 0A.00
+0B.40 20.C0 20.80 20.80 20.80 00.C0 00.80 00.C0 00.80 0C.40 1F.40 1F.00 1F.00 1F.00 1F.00 1F.00 0E.40 23.C0 23.80 23.20 23.80 00.C0 00.80 00.80 00.80 0F.40
+0B.40 20.40 20.00 20.00 20.00 00.40 00.00 00.40 00.00 0C.40 1F.40 1F.00 1F.00 1F.00 1F.00 1F.00 0E.40 23.40 23.00 23.00 23.00 00.40 00.00 00.00 00.00 0F.40
+0B.40 20.10 20.00 20.00 20.00 00.40 00.00 00.40 00.00 0C.40 0D.80 0D.80 0D.80 0D.80 0D.80 0D.80 0E.00 23.40 23.00 23.00 23.00 00.40 00.00 00.00 00.00 0F.40
+0B.40 20.40 20.00 20.00 20.00 00.C0 00.80 00.80 00.80 00.C0 00.80 00.80 0D.41 0D.00 00.C0 00.80 00.80 00.80 23.41 23.00 23.00 00.40 00.00 00.00 00.00 0F.40
+0B.40 25.C0 25.28 25.80 25.80 00.40 00.00 00.00 00.00 00.40 00.00 00.00 0D.41 0D.00 00.40 00.00 00.00 00.00 29.C0 29.80 29.80 2A.C0 2A.80 2A.80 2A.80 0F.40
+10.40 25.40 25.00 25.00 25.00 00.40 00.00 00.00 00.00 00.40 00.00 00.00 12.40 12.00 00.40 00.00 00.00 00.00 29.40 29.00 29.00 2A.10 2A.00 2A.00 2A.00 14.40
+10.40 25.40 25.00 25.00 25.00 00.40 00.00 00.00 00.00 00.40 00.00 00.00 12.40 12.00 00.40 00.00 00.00 00.00 29.40 29.00 29.00 2A.40 2A.00 2A.00 2A.00 14.40
+10.40 25.40 25.00 25.00 25.00 00.40 00.00 00.00 00.00 00.40 00.00 00.00 12.40 12.00 00.40 00.00 00.00 00.00 29.40 29.00 29.00 2A.40 2A.00 2A.00 2A.00 14.10
+10.40 10.81 10.81 10.29 11.80 11.80 11.80 11.80 11.80 11.80 12.80 12.80 12.00 12.00 12.81 12.81 13.80 13.80 13.80 13.20 13.80 13.80 14.80 14.80 14.80 14.00
+
+[indicadores] 86 bytes iniciales (se copian a 0x6BB6 del original): marcas de habitaciones, cofres y puertas ya usados
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 1C 1D 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+
+[monstruos] estado|columna|fila|b3|b4|b5|b6|b7|tipo|estadistica   (10 bytes del original; b3-b5 los pone el juego)
+monstruo|0|0|0|0|0|0|1|16|6|6
+monstruo|129|13|9|0|0|0|1|21|14|14
+monstruo|129|10|0|0|0|0|1|16|4|4
+monstruo|129|25|0|0|0|0|64|18|1|15
+monstruo|129|0|3|0|0|0|64|18|1|15
+monstruo|129|22|3|0|0|0|1|19|3|3
+monstruo|129|2|5|0|0|0|1|16|4|4
+monstruo|129|5|5|0|0|0|1|16|4|4
+monstruo|129|7|5|0|0|0|1|16|4|4
+monstruo|129|9|6|0|0|0|1|16|6|6
+monstruo|129|3|7|0|0|0|1|16|4|4
+monstruo|129|5|7|0|0|0|1|16|4|4
+monstruo|129|7|7|0|0|0|1|16|4|4
+monstruo|129|11|7|0|0|0|1|16|4|4
+monstruo|129|12|7|0|0|0|1|19|3|3
+monstruo|129|14|7|0|0|0|1|19|3|3
+monstruo|129|15|7|0|0|0|1|16|4|4
+monstruo|129|16|7|0|0|0|1|16|6|6
+monstruo|129|11|8|0|0|0|1|19|3|3
+monstruo|129|25|8|0|0|0|1|16|5|5
+monstruo|129|3|9|0|0|0|1|16|6|6
+monstruo|129|1|10|0|0|0|1|16|6|6
+monstruo|129|4|10|0|0|0|1|19|3|3
+monstruo|129|11|10|0|0|0|1|19|3|3
+monstruo|129|16|11|0|0|0|1|16|6|6
+monstruo|129|9|12|0|0|0|1|16|6|6
+monstruo|129|0|15|0|0|0|64|18|1|15
+monstruo|129|3|15|0|0|0|1|19|3|3
+monstruo|129|19|15|0|0|0|1|16|5|5
+monstruo|129|18|16|0|0|0|1|16|5|5
+monstruo|129|20|16|0|0|0|1|16|5|5
+monstruo|129|23|16|0|0|0|1|16|6|6
+monstruo|129|7|18|0|0|0|1|16|4|4
+monstruo|129|25|18|0|0|0|64|18|1|15
+
+[objetos] columna|fila|codigo   (codigos de la capa de objetos: 0x30-0x5B; el nombre es solo orientativo)
+objeto|11|6|48 ; 0x30 bloqueada
+objeto|4|9|48 ; 0x30 bloqueada
+objeto|17|9|48 ; 0x30 bloqueada
+objeto|11|12|48 ; 0x30 bloqueada
+objeto|23|0|50 ; 0x32 
+objeto|23|1|50 ; 0x32 
+objeto|8|6|50 ; 0x32 
+objeto|6|7|50 ; 0x32 
+objeto|12|9|50 ; 0x32 
+objeto|13|14|50 ; 0x32 
+objeto|12|17|50 ; 0x32 
+objeto|8|0|54 ; 0x36 
+objeto|13|1|54 ; 0x36 
+objeto|3|2|54 ; 0x36 
+objeto|12|2|54 ; 0x36 
+objeto|22|2|54 ; 0x36 
+objeto|2|3|54 ; 0x36 
+objeto|0|6|54 ; 0x36 
+objeto|25|6|54 ; 0x36 
+objeto|2|15|54 ; 0x36 
+objeto|22|17|54 ; 0x36 
+objeto|18|12|56 ; 0x38 salida
+objeto|18|13|57 ; 0x39 salida
+objeto|19|12|58 ; 0x3A salida
+objeto|19|13|59 ; 0x3B salida
+objeto|3|13|64 ; 0x40 cofre
+objeto|13|7|65 ; 0x41 trono
+
+[objetivo] texto de presentacion: atributo(hex)|alineacion(L/C/R)|columna|fila|texto
+03|C|16|0|LA CORTE DEL GRAN BRUJO
+06|C|16|4|EL GRAN BRUJO HA OBSERVADO TU
+06|C|16|5|AVANCE. TE HA TRATADO DE
+06|C|16|6|DESTRUIR, PERO LO HAS SABIDO
+06|C|16|7|VENCER EN CADA OCASION.
+06|C|16|9|AHORA SE HA ESCAPADO AL SALON
+06|C|16|10|DEL TRONO. ALLI DEBERAS TRABAR
+06|C|16|11|COMBATE CON EL. ESTA VEZ NO DEBE
+06|C|16|12|EXISTIR ESCAPATORIA PARA EL.
+06|C|16|14|ESCUCHA CON ATENCION. SOLO LA
+06|C|16|15|ESPADA DEL ESPIRITU PUEDE MATAR
+06|C|16|16|AL GRAN BRUJO.
