@@ -5,6 +5,9 @@
 
 Port del videojuego **HeroQuest** (Gremlin Graphics, 1991; versión de ZX Spectrum 128K) al **Sinclair QL**. Escrito en C89 (XTC68/`qcc`) con las partes críticas en ensamblador 68000, en modo 8 (256×256, 8 colores). Incluye las 14 misiones del juego base, en español y en inglés, y puede cargar la ampliación *Return of the Witch Lord*.
 
+![Captura 1](screenshot_1.png)
+![Captura 2](screenshot_2.png)
+
 ## Qué es y cómo se ha hecho
 
 No es una emulación del Spectrum: es una reescritura que se apoya en el análisis del original.
