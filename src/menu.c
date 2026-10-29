@@ -272,6 +272,13 @@ static void draw_nombre(int i)
     for (k = 0; k < 6; k++) b[1 + k] = (k < heroes[i].nlen) ? heroes[i].nombre[k] : 0x5F;
     b[7] = 0x73;
     gfx_text(16, 4 + 3 * i + UI_ROW0, b, 8, NEG, cls_col[i]);
+    {                                                    /* el heroe que no juega (muerto o eliminado): "MUERTO" a su lado */
+        int x, y, attr, al, len;
+        const u8 *s;
+        gfx_cells_fill(25, 4 + 3 * i + UI_ROW0, 7, 1, NEG);
+        if (!heroes[i].activo && tx_guion_linea(TX_MENU_6B0F, 0, &x, &y, &attr, &al, &s, &len))
+            gfx_text(25, 4 + 3 * i + UI_ROW0, s, len, C_RED, NEG);
+    }
 }
 
 static void draw_crear(int sel)
@@ -281,15 +288,15 @@ static void draw_crear(int sel)
     for (i = 0; i < 4; i++) draw_nombre(i);
 }
 
-static const int op_id[3] = { TX_MENU_6B5D, TX_MENU_6B5D, TX_MENU_6B7A };
-static const int op_n[3] = { 0, 1, 0 };
+static const int op_id[4] = { TX_MENU_6B5D, TX_MENU_6B5D, TX_MENU_6B7A, TX_MENU_6B7A };
+static const int op_n[4] = { 0, 1, 0, 1 };        /* la ultima: linea 1 = ACTIVAR, linea 2 = ELIMINAR (segun el heroe) */
 
-static void draw_opciones(int sel, int visible)
+static void draw_opciones(int sel, int visible, int hs)
 {
     int i;
     gfx_cells_fill(0, 23, GCOLS, 1, NEG);
     if (!visible) return;
-    for (i = 0; i < 3; i++) draw_line(op_id[i], op_n[i], -1, i == sel);
+    for (i = 0; i < 4; i++) draw_line(op_id[i], op_n[i] + (i == 3 && heroes[hs].activo), -1, i == sel);
 }
 
 /* Teclea un nombre de hasta max letras (max <= 12) con la rejilla de letras (abajo): izquierda y derecha mueven, el boton escribe la letra,
@@ -390,13 +397,13 @@ static void menu_crear(void)
             if (hs == 4) return;
             op = 0;
             for (;;) {
-                draw_opciones(op, 1);
+                draw_opciones(op, 1, hs);
                 k = key_wait();
-                if (k & (K_RIGHT | K_DOWN)) op = (op + 1) % 3;
-                if (k & (K_LEFT | K_UP)) op = (op + 2) % 3;
+                if (k & (K_RIGHT | K_DOWN)) op = (op + 1) % 4;
+                if (k & (K_LEFT | K_UP)) op = (op + 3) % 4;
                 if (k & K_ESC) break;
                 if (k & K_FIRE) {
-                    draw_opciones(op, 0);
+                    draw_opciones(op, 0, hs);
                     if (op == 0) {                          /* NOMBRE: se teclea de nuevo (abajo) y al acabar sustituye al anterior */
                         r = leer_nombre(tmp);
                         if (r >= 0) { heroes[hs].nlen = (u8)r; for (i = 0; i < r; i++) heroes[hs].nombre[i] = tmp[i]; }
@@ -405,14 +412,16 @@ static void menu_crear(void)
                         r = leer_nombre(tmp);
                         gfx_cells_fill(0, 21, GCOLS, 3, NEG);
                         if (r > 0) { if (!cargar_heroe(&heroes[hs], tmp, r)) aviso(3, C_RED); }
-                    } else {                                /* GUARDAR */
+                    } else if (op == 2) {                   /* GUARDAR */
                         aviso(guardar_heroe(&heroes[hs]) ? 2 : 4, C_YELLOW);
+                    } else {                                /* ACTIVAR (tambien revive al muerto en una partida anterior) / ELIMINAR: juega o no */
+                        heroes[hs].activo = (u8)!heroes[hs].activo;
                     }
                     draw_crear(hs);
                     break;
                 }
             }
-            draw_opciones(0, 0);
+            draw_opciones(0, 0, hs);
         }
     }
 }
