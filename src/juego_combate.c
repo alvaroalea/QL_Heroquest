@@ -73,7 +73,7 @@ static void pantalla_combate(int heroe, int cuerpo, int mente, int tipo, int b7,
     vence = golpes > escudos;                                                                                          /* 0x9A26 y 0x9A4D */
     if (!vence) retrato = RETRATO_FALLO;
     else retrato = ataca_heroe ? partida_tipo(&g_part, tipo)->retrato : retrato_heroe[heroe];
-    if (data_retrato(retrato, &g)) gfx_blit(&g, 64, VY0);                                                           /* de memoria o, si no caben todos, del disco */
+    if (data_retrato(retrato, &g)) gfx_blit(&g, 64, VY0 - 8);                                                         /* de memoria o, si no caben todos, del disco */
     mus_efecto(vence ? 3 : 2);                                                                                         /* 0x9AA3: golpe o fallo */
     if (ataca_heroe) tx_guion(vence ? TX_GUION_B89F : TX_GUION_B8BA, -1, 0, 0);
     else tx_guion(vence ? TX_GUION_B866 : TX_GUION_B87C, -1, 0, 0);

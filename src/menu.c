@@ -59,13 +59,13 @@ static const int grp_lx[4] = { 0, 16, 0, 16 }, grp_ly[4] = { 9, 9, 17, 17 };
 #define ESC_CARTA_0 59                       /* cartas de los colegios (aire, fuego, tierra, agua) en escenario_bin */
 static int vista_cartas = 1;                 /* la eleccion de hechizos empieza con las cartas; ARRIBA / ABAJO cambian entre cartas y lista de hechizos */
 
-static void draw_cartas(const int *owner, int cur)
+static void draw_cartas(const int *owner, int cur, int todo)
 {
     int g, x, y, attr, al, len, n;
     const u8 *s, *pk = dat_get(DAT_ESCENARIO, 0);
     gimg gi;
     for (g = 0; g < 4; g++) {
-        if (pk && pack_get(pk, ESC_CARTA_0 + g, &gi)) gfx_blit(&gi, g * 64, GY0 + 5 * 8);
+        if (todo == 1 && pk && pack_get(pk, ESC_CARTA_0 + g, &gi)) gfx_blit(&gi, g * 64, GY0 + 5 * 8);
         tx_guion_linea(grp_tit[g], 0, &x, &y, &attr, &al, &s, &len);
         if (g_idioma != IDIOMA_EN) { s += 9; n = len - 9; }                           /* el nombre del colegio sin "HECHIZOS " ... */
         else n = len - 7;                                                     /* ... o sin " SPELLS" */
@@ -77,12 +77,15 @@ static void draw_cartas(const int *owner, int cur)
     }
 }
 
-static void draw_grupos(const int *owner, int cur, int hdr)
+/* todo = 1: pantalla entera; 2: solo el encabezado (de un heroe a otro) y los textos de los grupos; 0: solo los textos de los grupos (cambia la seleccion): asi no parpadea */
+static int grp_activa;                       /* la pantalla de grupos ya esta dibujada (se pasa del mago al elfo sin borrarla) */
+static void draw_grupos(const int *owner, int cur, int hdr, int todo)
 {
     int g, x, y, attr, al, len, id;
     const u8 *s;
-    cls();
-    if (hdr) {
+    if (todo == 1) cls();
+    else if (todo == 2) gfx_cells_fill(0, 0, 32, 5, NEG);       /* borra solo el encabezado (filas 0 a 4) */
+    if (todo && hdr) {
         id = hdr == 1 ? TX_MENU_680C : hdr == 2 ? TX_MENU_686A : TX_MENU_683C;
         tx_guion(id, -1, 0, 0);
         if (tx_guion_linea(id, 0, &x, &y, &attr, &al, &s, &len)) {        /* el nombre (ELFO / MAGO) una fila mas arriba */
@@ -90,8 +93,8 @@ static void draw_grupos(const int *owner, int cur, int hdr)
             gfx_text(x, y + UI_ROW0 - 1, s, len, (u8)(attr & 7), NEG);
         }
     }
-    if (vista_cartas) { draw_cartas(owner, cur); return; }
-    tx_guion(TX_MENU_6761, -1, 0, 0);
+    if (vista_cartas) { draw_cartas(owner, cur, todo); return; }
+    if (todo == 1) tx_guion(TX_MENU_6761, -1, 0, 0);
     for (g = 0; g < 4; g++) {
         draw_line(grp_tit[g], 0, -1, g == cur);
         if (owner[g]) {
@@ -103,18 +106,20 @@ static void draw_grupos(const int *owner, int cur, int hdr)
 
 static int elegir_grupo(int *owner, int who, int hdr)    /* devuelve el grupo elegido (-1 = ESC) */
 {
-    int cur = 0, i;
+    int cur = 0, i, todo;
     u16 k;
     while (owner[cur]) cur++;
-    draw_grupos(owner, cur, hdr);
+    draw_grupos(owner, cur, hdr, grp_activa ? 2 : 1);
+    grp_activa = 1;
     for (;;) {
         k = key_wait();
-        if (k & (K_UP | K_DOWN)) vista_cartas = !vista_cartas;
+        todo = 0;
+        if (k & (K_UP | K_DOWN)) { vista_cartas = !vista_cartas; todo = 1; }
         if (k & K_RIGHT) { i = cur; do { cur = (cur + 1) & 3; } while (owner[cur] && cur != i); }
         if (k & K_LEFT) { i = cur; do { cur = (cur + 3) & 3; } while (owner[cur] && cur != i); }
         if (k & K_ESC) return -1;
         if (k & K_FIRE) { owner[cur] = who; return cur; }
-        draw_grupos(owner, cur, hdr);
+        draw_grupos(owner, cur, hdr, todo);
     }
 }
 
@@ -124,6 +129,7 @@ static int elegir_hechizos(void)                         /* 0 si se pulsa ESC (s
 {
     int owner[4], g, n, mago = heroes[3].activo, elfo = heroes[2].activo;
     owner[0] = owner[1] = owner[2] = owner[3] = 0;
+    grp_activa = 0;
     heroes[2].grupos = heroes[3].grupos = 0;
     if (!mago && !elfo) return 1;
     if (mago) {
@@ -133,9 +139,11 @@ static int elegir_hechizos(void)                         /* 0 si se pulsa ESC (s
     if (elfo) { g = elegir_grupo(owner, 1, 1); if (g < 0) goto atras; heroes[2].grupos |= (u8)(1 << g); }
     if (mago && elfo)
         for (g = 0; g < 4; g++) if (!owner[g]) { owner[g] = 2; heroes[3].grupos |= (u8)(1 << g); }
-    draw_grupos(owner, -1, 0);
+    draw_grupos(owner, -1, 0, 0);                          /* estado final sin seleccion y con todos los dueños, sin borrar la pantalla */
+    grp_activa = 0;
     return 1;
 atras:
+    grp_activa = 0;
     heroes[2].grupos = heroes[3].grupos = 0;
     return 0;
 }
