@@ -7,6 +7,7 @@
 int main(void)
 {
     plat_init();
+    plat_pantalla_carga();                 /* la carga de datos tarda: se ve la pantalla de carga */
     g_raton = plat_raton_auto();           /* con QIMSI el raton empieza activado */
     plat_raton = (u8)g_raton;
     g_musica = qs_detect();                /* con QSound la musica empieza activada */

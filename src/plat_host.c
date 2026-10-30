@@ -20,6 +20,8 @@ static int spos = 0, hold = 0, rest = 0;
 static u16 cur = 0;
 static unsigned long frames = 0;
 
+void plat_pantalla_carga(void) { }
+
 void plat_init(void)
 {
     const char *e = getenv("HQ_KEYS");

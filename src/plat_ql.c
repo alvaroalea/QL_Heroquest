@@ -11,6 +11,12 @@
 #include <string.h>
 #include <qdos.h>
 
+/* Consola de c68: el runtime abre una ventana por defecto (marco rojo, 484 x 216) antes de main y al salir escribe "Press a key to exit". Se define a
+   pantalla completa, sin borde y negra, y se anula el mensaje (las ventanas del QL miden 512 x 256 tambien en modo 8; ver ../QL_XCom/CLAUDE.md). */
+WINDOWDEF_t _condetails = { 0, 0, 0, 7, 512, 256, 0, 0 };
+char *_endmsg = NULL;
+timeout_t _endtimeout = 0;
+
 u8 *screen = (u8 *)0x20000L;               /* pantalla 1 del QL estandar */
 u8 plat_raton = RAT_CURSORES;              /* tipo de raton; los cursores solo cuentan con RAT_CURSORES */
 
@@ -63,6 +69,17 @@ static void con_setup(void)
         ql_trap3(SD_WDEF, 0L, 0L, -1L, con_out, (long)win_def);              /* borde negro, ancho 0 */
         ql_trap3(SD_CURS, 0L, 0L, -1L, con_out, 0L);                         /* sin cursor */
     }
+}
+
+void plat_pantalla_carga(void)             /* QDOS borra la pantalla al redefinir la consola (plat_init): se vuelve a poner la pantalla de carga que dejo el boot */
+{
+    char nombre[64];
+    FILE *f;
+    sprintf(nombre, "%sheroquest_scr", plat_data_dir());
+    f = fopen(nombre, "rb");
+    if (!f) return;
+    fread(screen, 1, 32768U, f);
+    fclose(f);
 }
 
 void plat_init(void)
@@ -196,14 +213,14 @@ static void pe_leer(void)
 int plat_raton_auto(void)
 {
     u8 e = QS_EST;
-    return ((e & 0xEE) == 0 && (e & 0x10)) ? RAT_QIMSI : RAT_CURSORES;   /* con raton sin rueda no hay bit 4: se elige a mano en el menu */
+    return ((e & 0xE0) == 0 && (e & 0x10)) ? RAT_QIMSI : RAT_CURSORES;   /* con raton sin rueda no hay bit 4: se elige a mano en el menu */
 }
 
 int plat_raton_ok(int modo)
 {
     if (modo == RAT_QIMI) return (QI_BOT & 0x30) == 0x30;       /* sin boton pulsado los bits 4 y 5 valen 1; no hay deteccion mejor */
     if (modo == RAT_PE) return ql_trap3(0x70L, 0L, 0L, -1L, con_out, 0L) == 0L;
-    return modo == RAT_QIMSI && (QS_EST & 0xEE) == 0;     /* el registro real solo puede valer $00, $01, $10 o $11 (qimsi.js de QLRun); lo demas es el bus del puerto de ROM (sQLux con QSound da $75). Sin rueda y sin byte vale 0, igual que un bus a 0: ese caso no se distingue */
+    return modo == RAT_QIMSI && (QS_EST & 0xE0) == 0;     /* en una QIMSI real el estado da $13 (bits 0, 1 y 4; el bit 1 no esta documentado), asi que solo se descartan los bits 5 a 7: sQLux con QSound da $75 (el bus del puerto de ROM) y un bus sin nada $FF. Sin rueda y sin byte vale 0, igual que un bus a 0: ese caso no se distingue */
 }
 
 int plat_raton_estado(void) { return QS_EST; }

@@ -63,7 +63,7 @@ static void pantalla_combate(int heroe, int cuerpo, int mente, int tipo, int b7,
     gfx_char(20, UI_FILA(16), 0x72, C_BLACK, C_YELLOW);
     tx_cadena_en(21, UI_FILA(16), 9, s, n, 'C', C_BLACK, C_YELLOW);
     gfx_char(30, UI_FILA(16), 0x73, C_BLACK, C_YELLOW);
-    minifigura(23, tipo);
+    minifigura(23, partida_tipo(&g_part, tipo)->sprite);                                                              /* el sprite de la tabla [monstruos], como la vista (en el original sprite = tipo) */
     rotulo_punto(4, 18, 0, C_RED, cuerpo);                                                                             /* 0x75ED */
     rotulo_punto(4, 19, 1, C_RED, mente);
     rotulo_punto(22, 18, 0, C_GREEN, (b7 >> 4) & 15);                                                                  /* 0x751D */

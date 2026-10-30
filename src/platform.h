@@ -60,6 +60,7 @@ extern u8 plat_tecla4;            /* 1 = plat_keys lee tambien la tecla 4 (en el
 extern u8 *screen;                /* pantalla en formato QL modo 8 */
 
 void plat_init(void);
+void plat_pantalla_carga(void);   /* QL: vuelve a poner la pantalla de carga (heroquest_scr) que plat_init borra; PC: nada */
 void plat_shutdown(void);         /* idempotente; en el QL se registra con atexit */
 void plat_exit(void);             /* QL: termina el programa sin el mensaje "Press a key to exit" (MT.FRJOB); PC: exit(0). Es la salida normal de main */
 unsigned long plat_ticks(void);   /* cuadros de 50 Hz desde el arranque */
