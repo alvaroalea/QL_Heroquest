@@ -49,6 +49,8 @@ void tx_cadena_centrada(int row, const u8 *s, int n, u8 ink, u8 paper)
     gfx_text(16 - n / 2, row, s, n, ink, paper);
 }
 
+int tx_interlinea = 0;
+
 void tx_ops(const u8 *p, int ink, int invert, int dy)
 {
     int op, attr, al, x, y, n, c, ci, pa;
@@ -59,9 +61,11 @@ void tx_ops(const u8 *p, int ink, int invert, int dy)
             c = (ink >= 0) ? ink : (attr & 7);
             ci = invert ? C_BLACK : c; pa = invert ? c : C_BLACK;
             if (al == 'C') x = 16 - n / 2; else if (al == 'R') x = x - n;
+            gfx_set_dy(y * tx_interlinea);
             gfx_text(x, y + UI_ROW0 + dy, p, n, (u8)ci, (u8)pa);
             for (c = 0; c < n; c++)                  /* los bordes {72} y {73} del nombre se ven en negativo */
                 if (p[c] == 0x72 || p[c] == 0x73) gfx_char(x + c, y + UI_ROW0 + dy, p[c], (u8)pa, (u8)ci);
+            gfx_set_dy(0);
             p += n;
         } else if (op == 2) {
             unsigned off = (unsigned)p[0] | ((unsigned)p[1] << 8);

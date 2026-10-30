@@ -18,8 +18,8 @@ BELLTHOR|4|27|7|N
 SKULMAR|4|27|7|N
 DOOMGUARD|6|23|3|N
 KESSANDRA|4|27|7|N
-WITCHLORD|4|27|7|N
-STATUE|4|21|1|N
+WITCHLORD|13|27|7|N
+STATUE|12|21|1|N
 
 [estadisticas] una por linea, la primera es la estadistica 0 (columna estadistica de [monstruos] de las misiones): movimiento (sin efecto en el original)|dados de ataque|dados de defensa|monedas al morir|a quien (0 nadie, 1 el que lo mata, 2 los cuatro)|bit de objeto (0 ninguno)|mensaje (0 ninguno, 1 BANE DE ORC, 2 ESTRELLA DEL OESTE)|jefe (1 = solo la espada espiritual le hace dano)
 10|2|1|0|0|0|0|0

@@ -24,7 +24,7 @@ build/datos/         <- índices de texto para el PC
 - Qué traen los PNG originales:
   - `sprites/` (66 personajes y monstruos, más el cofre y el trono, y `cursor`): tinta negra, halo blanco de 2 puntos a cada lado (el juego lo deduce de una tabla) y el resto transparente.
   - `escenario/`: paredes, puertas, suelo, escaleras y piezas base: tinta negra y el resto transparente (el juego las compone con OR). Los **muebles** (17) son sprites con halo blanco.
-  - `retratos/` (10, de 128×64) y `marco/` (marco de pantalla y pantalla de carga, 256×192): opacos y con los colores de sus celdas de atributos (sin el brillo).
+  - `retratos/` (14, de 128×64) y `marco/` (marco de pantalla y pantalla de carga, 256×192): opacos y con los colores de sus celdas de atributos (sin el brillo).
   - `fuentes/`: `baldosas` (32 baldosas de 8×8), `fuente_normal` y `fuente_manuscrita` (68 caracteres de 8×8, en una hoja de 17 columnas): negro sobre transparente; cualquier punto opaco cuenta como «1».
   - `fuentes/baldosa_niebla.png` (8×8, solo en `asset/graficos_ql/`): la baldosa 33 del plano, el icono de la niebla de la muerte de la ampliación; se empaqueta detrás de la marca en `marca_activo_bin` (16 bytes). Es una copia de la baldosa 27 hasta que se dibuje la voluta.
 - En el juego solo se usan la **fuente activa** (la normal por defecto; la manuscrita es la que se activa con «3: MANUSCRITO» en Controles) y las **baldosas del mapa** (`0xB1C8`).

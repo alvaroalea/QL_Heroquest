@@ -56,14 +56,41 @@ static void draw_num4(int col, int row, unsigned v, u8 ink)
 static const int grp_tit[4] = { TX_MENU_66F5, TX_MENU_670B, TX_MENU_6722, TX_MENU_673A };
 static const int grp_lx[4] = { 0, 16, 0, 16 }, grp_ly[4] = { 9, 9, 17, 17 };
 
+#define ESC_CARTA_0 59                       /* cartas de los colegios (aire, fuego, tierra, agua) en escenario_bin */
+static int vista_cartas = 1;                 /* la eleccion de hechizos empieza con las cartas; ARRIBA / ABAJO cambian entre cartas y lista de hechizos */
+
+static void draw_cartas(const int *owner, int cur)
+{
+    int g, x, y, attr, al, len, n;
+    const u8 *s, *pk = dat_get(DAT_ESCENARIO, 0);
+    gimg gi;
+    for (g = 0; g < 4; g++) {
+        if (pk && pack_get(pk, ESC_CARTA_0 + g, &gi)) gfx_blit(&gi, g * 64, GY0 + 5 * 8);
+        tx_guion_linea(grp_tit[g], 0, &x, &y, &attr, &al, &s, &len);
+        if (g_idioma != IDIOMA_EN) { s += 9; n = len - 9; }                           /* el nombre del colegio sin "HECHIZOS " ... */
+        else n = len - 7;                                                     /* ... o sin " SPELLS" */
+        gfx_text(g * 8 + 4 - n / 2, 17 + UI_ROW0, s, n, (u8)(g == cur ? NEG : (attr & 7)), (u8)(g == cur ? (attr & 7) : NEG));
+        if (owner[g]) {
+            tx_guion_linea(owner[g] == 1 ? TX_MENU_6750 : TX_MENU_6757, 0, &x, &y, &attr, &al, &s, &len);
+            gfx_text(g * 8 + 4 - len / 2, 19 + UI_ROW0, s, len, C_CYAN, NEG);
+        }
+    }
+}
+
 static void draw_grupos(const int *owner, int cur, int hdr)
 {
-    int g, x, y, attr, al, len;
+    int g, x, y, attr, al, len, id;
     const u8 *s;
     cls();
-    if (hdr == 1) tx_guion(TX_MENU_680C, -1, 0, 0);
-    else if (hdr == 2) tx_guion(TX_MENU_686A, -1, 0, 0);
-    else if (hdr == 3) tx_guion(TX_MENU_683C, -1, 0, 0);
+    if (hdr) {
+        id = hdr == 1 ? TX_MENU_680C : hdr == 2 ? TX_MENU_686A : TX_MENU_683C;
+        tx_guion(id, -1, 0, 0);
+        if (tx_guion_linea(id, 0, &x, &y, &attr, &al, &s, &len)) {        /* el nombre (ELFO / MAGO) una fila mas arriba */
+            gfx_cells_fill(x, y + UI_ROW0, len, 1, NEG);
+            gfx_text(x, y + UI_ROW0 - 1, s, len, (u8)(attr & 7), NEG);
+        }
+    }
+    if (vista_cartas) { draw_cartas(owner, cur); return; }
     tx_guion(TX_MENU_6761, -1, 0, 0);
     for (g = 0; g < 4; g++) {
         draw_line(grp_tit[g], 0, -1, g == cur);
@@ -74,7 +101,7 @@ static void draw_grupos(const int *owner, int cur, int hdr)
     }
 }
 
-static int elegir_grupo(int *owner, int who, int hdr)    /* devuelve el grupo elegido */
+static int elegir_grupo(int *owner, int who, int hdr)    /* devuelve el grupo elegido (-1 = ESC) */
 {
     int cur = 0, i;
     u16 k;
@@ -82,8 +109,10 @@ static int elegir_grupo(int *owner, int who, int hdr)    /* devuelve el grupo el
     draw_grupos(owner, cur, hdr);
     for (;;) {
         k = key_wait();
-        if (k & (K_DOWN | K_RIGHT)) { i = cur; do { cur = (cur + 1) & 3; } while (owner[cur] && cur != i); }
-        if (k & (K_UP | K_LEFT)) { i = cur; do { cur = (cur + 3) & 3; } while (owner[cur] && cur != i); }
+        if (k & (K_UP | K_DOWN)) vista_cartas = !vista_cartas;
+        if (k & K_RIGHT) { i = cur; do { cur = (cur + 1) & 3; } while (owner[cur] && cur != i); }
+        if (k & K_LEFT) { i = cur; do { cur = (cur + 3) & 3; } while (owner[cur] && cur != i); }
+        if (k & K_ESC) return -1;
         if (k & K_FIRE) { owner[cur] = who; return cur; }
         draw_grupos(owner, cur, hdr);
     }
@@ -91,20 +120,24 @@ static int elegir_grupo(int *owner, int who, int hdr)    /* devuelve el grupo el
 
 /* Primero elige el hechicero y despues el duende (elfo): el hechicero elige 3 grupos si juega solo y 1 si tambien juega el elfo
    (los que queden sin dueño pasan al hechicero) */
-static void elegir_hechizos(void)
+static int elegir_hechizos(void)                         /* 0 si se pulsa ESC (se vuelve a la pantalla del objetivo) */
 {
     int owner[4], g, n, mago = heroes[3].activo, elfo = heroes[2].activo;
     owner[0] = owner[1] = owner[2] = owner[3] = 0;
     heroes[2].grupos = heroes[3].grupos = 0;
-    if (!mago && !elfo) return;
+    if (!mago && !elfo) return 1;
     if (mago) {
         n = elfo ? 1 : 3;
-        while (n--) { g = elegir_grupo(owner, 2, elfo ? 3 : 2); heroes[3].grupos |= (u8)(1 << g); }
+        while (n--) { g = elegir_grupo(owner, 2, elfo ? 3 : 2); if (g < 0) goto atras; heroes[3].grupos |= (u8)(1 << g); }
     }
-    if (elfo) { g = elegir_grupo(owner, 1, 1); heroes[2].grupos |= (u8)(1 << g); }
+    if (elfo) { g = elegir_grupo(owner, 1, 1); if (g < 0) goto atras; heroes[2].grupos |= (u8)(1 << g); }
     if (mago && elfo)
         for (g = 0; g < 4; g++) if (!owner[g]) { owner[g] = 2; heroes[3].grupos |= (u8)(1 << g); }
     draw_grupos(owner, -1, 0);
+    return 1;
+atras:
+    heroes[2].grupos = heroes[3].grupos = 0;
+    return 0;
 }
 
 /* ---------------------------------------------------------------- mision */
@@ -133,33 +166,40 @@ static int elegir_mision(void)
     }
 }
 
-static void mostrar_objetivo(int n)
+static int mostrar_objetivo(int n)                       /* 0 si se pulsa ESC (vuelta a la lista de misiones) */
 {
     char name[24];
     u8 *m;
+    u16 k;
     data_mision_nombre(name, n);
     m = data_load(name, 0);
     cls();
-    if (m) { tx_ops(m + rd32(m + 44), -1, 0, 0); free(m); }
+    if (m) { tx_interlinea = 2; tx_ops(m + rd32(m + 44), -1, 0, 0); tx_interlinea = 0; free(m); }   /* 2 puntos mas entre lineas */
     else tx_guion(TX_MENU_66B6, -1, 0, 0);
     key_reset();
-    while (!(key_wait() & K_FIRE)) { }
+    for (;;) {
+        k = key_wait();
+        if (k & K_ESC) return 0;
+        if (k & K_FIRE) return 1;
+    }
 }
 
 static void menu_jugar(void)
 {
-    int i, algun = 0, m;
+    int i, algun = 0, m, ok;
     for (i = 0; i < 4; i++) algun |= heroes[i].activo;
     if (!algun) {                         /* "TODOS LOS JUGADORES MUERTOS / CREA JUGADORES NUEVOS" */
         cls(); tx_guion(TX_MENU_66B6, -1, 0, 0);
         key_reset(); key_wait();
         return;
     }
-    m = elegir_mision();
-    if (m < 0) return;
-    g_mision = m;
-    mostrar_objetivo(m);
-    elegir_hechizos();                    /* los grupos de hechizos se eligen despues de leer la introduccion de la mision */
+    for (ok = 0; !ok;) {                  /* ESC vuelve a la pantalla anterior: de hechizos a objetivo y de objetivo a la lista de misiones */
+        m = elegir_mision();
+        if (m < 0) return;
+        g_mision = m;
+        while (mostrar_objetivo(m))
+            if (elegir_hechizos()) { ok = 1; break; }    /* los grupos de hechizos se eligen despues de leer la introduccion de la mision */
+    }
     game_run(m);
     mus_song(2);                           /* de vuelta al menu: su musica */
 }

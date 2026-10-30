@@ -128,9 +128,15 @@ oraculo:
 	tmp/venv/bin/python -I tools/hq_oraculo_monstruo.py
 	tmp/venv/bin/python -I tools/hq_oraculo_mision.py
 
-test: host build/host/partida_test build/host/vista_test build/host/turno_test build/host/accion_test build/host/combate_test build/host/monstruo_test build/host/mision_test build/oraculo_vista.txt build/oraculo_turno.txt build/oraculo_accion.txt build/oraculo_combate.txt build/oraculo_monstruo.txt build/oraculo_mision.txt
+# datos con los graficos originales (sin retoques) para las pruebas contra el original: el resto de ficheros son los de data/
+build/datos_orig/sprites_bin: $(STAMP)
+	@mkdir -p build/datos_orig
+	cp -f data/* build/datos_orig/
+	tmp/venv/bin/python -I tools/hq_ql_empaquetar.py --originales
+
+test: build/datos_orig/sprites_bin host build/host/partida_test build/host/vista_test build/host/turno_test build/host/accion_test build/host/combate_test build/host/monstruo_test build/host/mision_test build/oraculo_vista.txt build/oraculo_turno.txt build/oraculo_accion.txt build/oraculo_combate.txt build/oraculo_monstruo.txt build/oraculo_mision.txt
 	build/host/partida_test
-	build/host/vista_test
+	build/host/vista_test build/oraculo_vista.txt build/datos_orig/
 	build/host/turno_test
 	build/host/accion_test
 	build/host/combate_test

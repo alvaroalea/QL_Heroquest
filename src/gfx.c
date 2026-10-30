@@ -59,7 +59,10 @@ void gfx_clear(void)
 
 void gfx_set_font(const u8 *f) { font = f; }
 
-static u8 *cell_ptr(int col, int row) { return screen + rowoff[row] + col * 4; }
+static int ydesp;                                      /* lineas de pantalla que se baja todo lo que va por celdas (interlineado del texto de la mision) */
+void gfx_set_dy(int dy) { ydesp = dy; }
+
+static u8 *cell_ptr(int col, int row) { return screen + rowoff[row] + col * 4 + (long)ydesp * SCR_STRIDE; }
 
 void gfx_cells_fill(int col, int row, int ncols, int nrows, u8 c)
 {

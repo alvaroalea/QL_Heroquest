@@ -21,15 +21,21 @@ Formato de los ficheros de graficos (todo en big endian, el del 68000):
   copias desplazadas: si son 4, la copia j (0 a 3) esta desplazada j puntos a la derecha y tiene una palabra mas por fila
 Uso: hq_ql_empaquetar.py [--desplazados] [--verificar]
   --desplazados   guarda 4 copias desplazadas de los sprites de personajes y de los muebles (dibujado mas rapido, 4 veces mas datos)
-  --verificar     decodifica lo empaquetado y lo compara con los PNG"""
+  --verificar     decodifica lo empaquetado y lo compara con los PNG
+  --originales    para las pruebas contra el original (make test): usa asset/graficos sin los retoques y escribe en build/datos_orig/ en vez de data/"""
 import sys, os, struct
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from hq_png import leer
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ORIG = '--originales' in sys.argv        # graficos originales (sin retoques) a build/datos_orig/
+SAL = 'build/datos_orig' if ORIG else 'data'
 QL = [(0, 0, 0), (0, 0, 255), (255, 0, 0), (255, 0, 255), (0, 255, 0), (0, 255, 255), (255, 255, 0), (255, 255, 255)]
 def ruta(rel):
     """(ruta, base): base = 'asset/graficos_ql' solo si el PNG existe y es distinto del original (retocado)"""
     o = os.path.join(ROOT, 'asset/graficos', rel); q = os.path.join(ROOT, 'asset/graficos_ql', rel)
+    if ORIG and os.path.exists(o): return o, 'asset/graficos'
+    if ORIG and os.path.basename(rel).startswith('suelo_'):      # los 8 suelos de color solo existen en graficos_ql: en las pruebas, el suelo del original
+        return os.path.join(ROOT, 'asset/graficos/escenario/suelo.png'), 'asset/graficos'
     if os.path.exists(q):
         return q, ('asset/graficos_ql' if not os.path.exists(o) or open(q, 'rb').read() != open(o, 'rb').read() else 'asset/graficos')
     if os.path.exists(o): return o, 'asset/graficos'
@@ -87,7 +93,9 @@ def main(desplazados, verificar):
     # los 8 suelos de color (suelo_0 a suelo_7: el numero es el paper del atributo de la sala) van al final del escenario, indices 51 a 58;
     # solo existen en asset/graficos_ql/ y el juego los elige segun la sala (el 'suelo' del original, indice 10, ya no se usa)
     for k in range(8): cats['escenario'].append(['escenario/suelo_%d.png' % k])
-    os.makedirs(os.path.join(ROOT, 'data'), exist_ok=True); os.makedirs(os.path.join(ROOT, 'build/datos'), exist_ok=True)
+    # las 4 cartas de los colegios de magia (64 x 96; indices 59 a 62, en el orden de los grupos de hechizos: aire, fuego, tierra, agua) para la eleccion de hechizos
+    for c in ('aire', 'fuego', 'tierra', 'agua'): cats['escenario'].append(['cartas/%s.png' % c])
+    os.makedirs(os.path.join(ROOT, SAL), exist_ok=True); os.makedirs(os.path.join(ROOT, 'build/datos' + ('_orig' if ORIG else '')), exist_ok=True)
     avisos = set(); n_ret = 0; err = 0
     for cat, lista in cats.items():
         if cat == 'fuentes':
@@ -106,7 +114,7 @@ def main(desplazados, verificar):
                 if nom == 'marca_activo':                    # baldosas que no estan en la hoja: la 33 (voluta de la niebla) va detras de la marca (la 32), de fuentes/baldosa_niebla.png
                     pe, _ = ruta('fuentes/baldosa_niebla.png'); we, he, fe = leer(pe)
                     for y in range(8): b.append(sum(0x80 >> k for k in range(8) if fe[y][k][3] >= 128))
-                open(os.path.join(ROOT, 'data', nom + '_bin'), 'wb').write(b)
+                open(os.path.join(ROOT, SAL, nom + '_bin'), 'wb').write(b)
                 print('%-24s %5d bytes  (%s)' % (nom + '_bin', len(b), base)); n_ret += base == 'asset/graficos_ql'
             continue
         cuerpos = []; tabla = []; indice = []
@@ -132,15 +140,15 @@ def main(desplazados, verificar):
                 # centrada en vertical (los 256 x 192 del Spectrum van entre las lineas 32 y 223) y el resto en negro
                 scr = bytearray(32768); y0 = (256 - h) // 2; d0, pw0c = empaquetar_img(mat, False)
                 if w == 256 and h <= 256: scr[y0 * 128:(y0 + h) * 128] = d0
-                open(os.path.join(ROOT, 'data', 'heroquest_scr'), 'wb').write(scr)
+                open(os.path.join(ROOT, SAL, 'heroquest_scr'), 'wb').write(scr)
                 print('%-24s %6d bytes  (pantalla de carga, %s)' % ('heroquest_scr', len(scr), base))
                 continue
             tabla.append(struct.pack('>LHHHHHH', off, w, h, pw0 if copias == 1 else pw0 + 1, copias, 1 if mascara else 0, 0))
             cuerpos.append(bytes(datos)); indice.append('%3d %-40s %8d %4d %3d %s%s' % (len(indice), nom, off, w, h, 'M' if mascara else '-', ' x%d' % copias if copias > 1 else ''))
             off += len(datos)
         blob = b'HQGF' + struct.pack('>HH', 1, N) + b''.join(tabla) + b''.join(cuerpos)
-        open(os.path.join(ROOT, 'data', cat + '_bin'), 'wb').write(blob)
-        open(os.path.join(ROOT, 'build/datos', 'indice_%s.txt' % cat), 'w').write('indice nombre desplazamiento ancho alto (M = con mascara)\n' + '\n'.join(indice) + '\n')
+        open(os.path.join(ROOT, SAL, cat + '_bin'), 'wb').write(blob)
+        open(os.path.join(ROOT, 'build/datos' + ('_orig' if ORIG else ''), 'indice_%s.txt' % cat), 'w').write('indice nombre desplazamiento ancho alto (M = con mascara)\n' + '\n'.join(indice) + '\n')
         print('%-24s %6d bytes, %d graficos' % (cat + '_bin', len(blob), N))
     print('graficos retocados usados: %d' % n_ret)
     if avisos: print('AVISO: puntos lejos de la paleta del QL en:', ', '.join(sorted(avisos)))

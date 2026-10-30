@@ -14,6 +14,7 @@ const u8 *tx_str(int id, int i, int *len);       /* cadena i del elemento de tip
 /* Guiones: dibuja el guion id. ink >= 0 fuerza el color de la tinta (si no, el atributo del guion); invert = 1 dibuja tinta negra
    sobre papel de color (linea resaltada). dy suma filas. */
 void tx_guion(int id, int ink, int invert, int dy);
+extern int tx_interlinea;   /* lineas de pantalla de separacion extra por fila de texto en tx_ops (0 = ninguna) */
 void tx_ops(const u8 *p, int ink, int invert, int dy);   /* operaciones de un guion (p apunta al contador de operaciones) */
 int  tx_guion_linea(int id, int n, int *x, int *y, int *attr, int *al, const u8 **s, int *len);   /* linea de texto n (0..) de un guion; 0 si no hay */
 void tx_ventana(int id);                         /* ventana con marco centrada segun sus datos; las lineas con '{' no se interpretan */
